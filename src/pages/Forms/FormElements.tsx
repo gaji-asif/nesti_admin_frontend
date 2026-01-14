@@ -17,6 +17,8 @@ export default function FormElements() {
 
   const cityOptions = [
     { label: "Helsinki", value: "helsinki" },
+    { label: "Espoo", value: "espoo" },
+    { label: "Vantaa", value: "vantaa" },
     { label: "Tampere", value: "tampere" },
     { label: "Turku", value: "turku" },
     { label: "Oulu", value: "oulu" },
