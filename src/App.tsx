@@ -25,7 +25,7 @@ export default function App() {
       <Router>
         <ScrollToTop />
         <Routes>
-          {/* Dashboard Layout */}
+          Dashboard Layout
           <Route element={<AppLayout />}>
             <Route index path="/" element={<Home />} />
 
@@ -52,11 +52,9 @@ export default function App() {
             <Route path="/line-chart" element={<LineChart />} />
             <Route path="/bar-chart" element={<BarChart />} />
           </Route>
-
           {/* Auth Layout */}
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
-
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
