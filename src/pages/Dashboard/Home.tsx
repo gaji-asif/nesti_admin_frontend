@@ -10,30 +10,36 @@ export default function Home() {
   return (
     <>
       <PageMeta
-        title="React.js Ecommerce Dashboard | TailAdmin - React.js Admin Dashboard Template"
-        description="This is React.js Ecommerce Dashboard page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+        title="Nesti Community Dashboard | Admin Panel"
+        description="This is the Nesti Community Dashboard page for managing community services, metrics, and activities."
       />
       <div className="grid grid-cols-12 gap-4 md:gap-6">
         <div className="col-span-12 space-y-6 xl:col-span-7">
+          {/* Community Metrics - repurposed from EcommerceMetrics */}
           <EcommerceMetrics />
 
+          {/* Community Activity Chart - repurposed from MonthlySalesChart */}
           <MonthlySalesChart />
         </div>
 
         <div className="col-span-12 xl:col-span-5">
+          {/* Community Goals - repurposed from MonthlyTarget */}
           <MonthlyTarget />
         </div>
 
         <div className="col-span-12">
+          {/* Service Statistics - repurposed from StatisticsChart */}
           <StatisticsChart />
         </div>
 
         <div className="col-span-12 xl:col-span-5">
-          <DemographicCard />
+          {/* Community Demographics - repurposed from DemographicCard */}
+          {/* <DemographicCard /> */}
         </div>
 
         <div className="col-span-12 xl:col-span-7">
-          <RecentOrders />
+          {/* Recent Community Activities - repurposed from RecentOrders */}
+          {/* <RecentOrders /> */}
         </div>
       </div>
     </>
