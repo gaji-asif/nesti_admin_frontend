@@ -108,8 +108,7 @@ export default function NewServiceForm() {
       try {
         const newService = await addService(submissionData);
         console.log("✅ Service added successfully:", newService);
-        alert(`Service "${newService.name}" added successfully with ID ${newService.id}`);
-        
+        console.log(`Service "${newService.name}" added successfully with ID ${newService.id}`);
         alert("New service added successfully!");
         // Reset form after successful submission
         setFormData({

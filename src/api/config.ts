@@ -57,12 +57,12 @@ api.interceptors.response.use(
 );
 
 export interface ApiResponse<T = any> {
-    id: any;
-    name: any;
     success: boolean;
     data?: T;
     error?: string;
     message?: string;
+    id?: unknown;
+    name?: unknown;
 }
 
 export async function bootstrapCsrf() {
@@ -72,7 +72,6 @@ export async function bootstrapCsrf() {
     //   });
 
     //   await api.get('/sanctum/csrf-cookie');
-    await api.get('http://localhost/NestiApp/public/sanctum/csrf-cookie');
-
+    await api.get('/sanctum/csrf-cookie');
 
 }

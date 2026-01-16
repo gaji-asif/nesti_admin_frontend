@@ -32,10 +32,10 @@ export interface CreateServiceData {
 // Function to add new service
 export const addService = async (
   serviceData: CreateServiceData
-): Promise<ApiResponse<Service>> => {
+): Promise<Service> => {
   try {
     const response = await api.post("/add-service", serviceData);
-    console.log("Response data:", response)
+
     console.log("Service added successfully:", response.data);
     console.log("Next service Id to be assigned:", response.data.id + 1);
     return response.data;

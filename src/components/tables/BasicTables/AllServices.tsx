@@ -7,6 +7,7 @@ import {
 } from "../../ui/table";
 
 import Button from "../../ui/button/Button";
+import { PencilIcon, TrashBinIcon } from "../../../icons";
 
 export interface Service {
   id: string;
@@ -355,10 +356,10 @@ export default function AllServices() {
                   {service.is_partner ? `Yes (${service.partner_discount})` : "No"}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  <Button size="sm" onClick={() => console.log('Edit', service.id)}>Edit</Button>
+                  <Button size="sm" onClick={() => console.log('Edit', service.id)}><PencilIcon /></Button>
                 </TableCell>
-                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  <Button size="sm" onClick={() => console.log('Delete', service.id)}>Delete</Button>
+                <TableCell className="px-4 py-3 text-red-500 text-start text-theme-sm dark:text-red-400">
+                  <Button size="sm" className="bg-red-500 hover:bg-red-600 text-white" onClick={() => console.log('Delete', service.id)}><TrashBinIcon /></Button>
                 </TableCell>
               </TableRow>
             ))}
