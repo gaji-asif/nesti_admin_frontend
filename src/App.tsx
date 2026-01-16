@@ -12,12 +12,13 @@ import Buttons from "./pages/UiElements/Buttons";
 import LineChart from "./pages/Charts/LineChart";
 import BarChart from "./pages/Charts/BarChart";
 import Calendar from "./pages/Calendar";
-import BasicTables from "./pages/Tables/BasicTables";
-import FormElements from "./pages/Forms/FormElements";
+import AllServices from "./pages/Tables/Allservices";
+import NewServiceForm from "./pages/Forms/NewServiceForm";
 import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
+import AddCategory from "./pages/Forms/NewCategoryForm";
 
 export default function App() {
   return (
@@ -35,10 +36,11 @@ export default function App() {
             <Route path="/blank" element={<Blank />} />
 
             {/* Forms */}
-            <Route path="/form-elements" element={<FormElements />} />
+            <Route path="/new-service" element={<NewServiceForm />} />
+            <Route path="/new-category" element={<AddCategory />} />
 
             {/* Tables */}
-            <Route path="/basic-tables" element={<BasicTables />} />
+            <Route path="/all-services" element={<AllServices />} />
 
             {/* Ui Elements */}
             <Route path="/alerts" element={<Alerts />} />

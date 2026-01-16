@@ -44,13 +44,16 @@ const navItems: NavItem[] = [
   {
     name: "Forms",
     icon: <ListIcon />,
-    subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],
+    subItems: [
+      { name: "New Service", path: "/new-service", pro: false },
+      { name: "New Category", path: "/new-category", pro: false },
+    ],
   },
-  //   {
-  //     name: "Tables",
-  //     icon: <TableIcon />,
-  //     subItems: [{ name: "Basic Tables", path: "/basic-tables", pro: false }],
-  //   },
+    {
+      name: "All services",
+      icon: <TableIcon />,
+      subItems: [{ name: "All services", path: "/all-services", pro: false }],
+    },
   //   {
   //     name: "Pages",
   //     icon: <PageIcon />,
