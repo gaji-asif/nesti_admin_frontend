@@ -49,11 +49,11 @@ const navItems: NavItem[] = [
       { name: "New Category", path: "/new-category", pro: false },
     ],
   },
-  //   {
-  //     name: "Tables",
-  //     icon: <TableIcon />,
-  //     subItems: [{ name: "Basic Tables", path: "/basic-tables", pro: false }],
-  //   },
+    {
+      name: "All services",
+      icon: <TableIcon />,
+      subItems: [{ name: "All services", path: "/all-services", pro: false }],
+    },
   //   {
   //     name: "Pages",
   //     icon: <PageIcon />,
