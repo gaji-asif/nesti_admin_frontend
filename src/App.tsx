@@ -12,6 +12,7 @@ import BarChart from "./pages/Charts/BarChart";
 import Calendar from "./pages/Calendar";
 import AllServices from "./pages/Tables/AllServices";
 import NewServiceForm from "./pages/Forms/NewServiceForm";
+import EditServiceForm from "./pages/Forms/EditServiceForm";
 import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
@@ -35,6 +36,7 @@ export default function App() {
 
             {/* Forms */}
             <Route path="/new-service" element={<NewServiceForm />} />
+            <Route path="/edit-service/:id" element={<EditServiceForm />} />
             <Route path="/new-category" element={<AddCategory />} />
 
             {/* Tables */}
