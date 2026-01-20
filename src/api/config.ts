@@ -12,21 +12,12 @@ export const api = axios.create({
 // Add request interceptor to automatically include bearer token
 api.interceptors.request.use(
     (config) => {
-        // Get token from localStorage
-        const authData = localStorage.getItem('nestiAuth');
-        if (authData) {
-            try {
-                //Parse the stored auth data
-                const parsedAuth = JSON.parse(authData);
-                const token = parsedAuth.token;
+        // Use hardcoded token for temporary access
+        const token = '586|UitdCR2W7GUj4khebvpb0adhKuiuQPOm2M4CEyocebbfa855';
 
-                if (token) {
-                    //add authorization header to the request
-                    config.headers.Authorization = `Bearer ${token}`;
-                }
-            } catch (error) {
-                console.error('Error parsing auth data from localStorage:', error);
-            }
+        if (token) {
+            //add authorization header to the request
+            config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
     },
@@ -43,14 +34,8 @@ api.interceptors.response.use(
     (error) => {
         // Handle 401 Unauthorized responses (token expired/invalid)
         if (error.response?.status === 401) {
-            // Clear invalid token from localStorage
-            localStorage.removeItem('nestiAuth');
-            localStorage.removeItem('nestiProfile');
-
-            // Dispatch event to notify app about logout
-            window.dispatchEvent(new CustomEvent('nestiLogout'));
-
-            console.warn('Token expired or invalid. User logged out.');
+            // Log the error but don't logout since we're using a temp token
+            console.warn('Token expired or invalid. Using temp token - please check token validity.');
         }
         return Promise.reject(error);
     }

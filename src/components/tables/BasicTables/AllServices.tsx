@@ -8,6 +8,7 @@ import {
 
 import Button from "../../ui/button/Button";
 import { PencilIcon, TrashBinIcon } from "../../../icons";
+import { useNavigate } from "react-router";
 
 export interface Service {
   id: string;
@@ -227,6 +228,7 @@ const tableData: Service[] = [
 ];
 
 export default function AllServices() {
+  const navigate = useNavigate();
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       <div className="max-w-full overflow-x-auto">
@@ -356,7 +358,7 @@ export default function AllServices() {
                   {service.is_partner ? `Yes (${service.partner_discount})` : "No"}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  <Button size="sm" onClick={() => console.log('Edit', service.id)}><PencilIcon /></Button>
+                  <Button size="sm" onClick={() => navigate(`/edit-service/${service.id}`)}><PencilIcon /></Button>
                 </TableCell>
                 <TableCell className="px-4 py-3 text-red-500 text-start text-theme-sm dark:text-red-400">
                   <Button size="sm" className="bg-red-500 hover:bg-red-600 text-white" onClick={() => console.log('Delete', service.id)}><TrashBinIcon /></Button>
