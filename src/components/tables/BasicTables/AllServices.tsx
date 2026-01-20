@@ -15,6 +15,7 @@ import { getServices, deleteService, Service } from "../../../api/servicesAPI";
 export default function AllServices() {
   const navigate = useNavigate();
   const [services, setServices] = useState<Service[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -55,8 +56,41 @@ export default function AllServices() {
     }
   };
 
+  const filteredServices = services.filter(service => {
+    if (!searchTerm) return true;
+    
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      service.id.toString().includes(searchLower) ||
+      (service.name || '').toLowerCase().includes(searchLower) ||
+      service.category_id?.toString().includes(searchLower) ||
+      (service.city || '').toLowerCase().includes(searchLower) ||
+      (service.address || '').toLowerCase().includes(searchLower) ||
+      (service.website || '').toLowerCase().includes(searchLower) ||
+      service.rating?.toString().includes(searchLower)
+    );
+  });
+
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+      {/* Search Bar */}
+      <div className="p-4 border-b border-gray-200 dark:border-white/[0.05]">
+        <div className="flex items-center gap-4">
+          <div className="flex-1">
+            <input
+              type="text"
+              placeholder="Search services..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            />
+          </div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            {filteredServices.length} of {services.length} services
+          </div>
+        </div>
+      </div>
+      
       <div className="max-w-full overflow-x-auto">
         <Table>
           <TableHeader className="border-b border-gray-200 bg-gray-50 dark:border-white/[0.1] dark:bg-gray-800">
@@ -89,6 +123,12 @@ export default function AllServices() {
                 isHeader
                 className="px-5 py-3 font-bold text-gray-900 text-start text-theme-sm dark:text-white"
               >
+                Address
+              </TableCell>
+              <TableCell
+                isHeader
+                className="px-5 py-3 font-bold text-gray-900 text-start text-theme-sm dark:text-white"
+              >
                 Contact
               </TableCell>
               <TableCell
@@ -115,30 +155,34 @@ export default function AllServices() {
 
           {/* Table Body */}
           <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-            {Array.isArray(services) && services.length > 0 ? services.map((service) => (
+            {Array.isArray(filteredServices) && filteredServices.length > 0 ? filteredServices.map((service) => (
               <TableRow key={service.id}>
                 <TableCell className="px-5 py-4 sm:px-6 text-start text-theme-sm dark:text-white">
                   {service.id}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  {service.name}
+                  {service.name ? service.name.replace(/\b\w/g, l => l.toUpperCase()) : 'Unnamed Service'}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  {service.category_id}
+                  {service.category_id !== null ? service.category_id : 'Unknown category'}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  {service.city}
+                  {service.city ? service.city.replace(/\b\w/g, l => l.toUpperCase()) : 'Unknown location'}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  {service.address}
+                  {service.address ? service.address.replace(/\b\w/g, l => l.toUpperCase()) : 'Unknown address'}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  <a href={service.website} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                    Contact
-                  </a>
+                  {service.website ? (
+                    <a href={service.website} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                      Contact
+                    </a>
+                  ) : (
+                    <span className="text-gray-400">No contact</span>
+                  )}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  {service.rating}
+                  {service.rating !== null ? service.rating : 'Not rated'}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                   <Button size="sm" onClick={() => navigate(`/edit-service/${service.id}`)}><PencilIcon /></Button>
@@ -150,7 +194,10 @@ export default function AllServices() {
             )) : (
               <TableRow>
                 <TableCell className="px-4 py-8 text-center text-gray-500">
-                  {Array.isArray(services) ? 'No services found' : 'Loading services...'}
+                  {Array.isArray(services) 
+                    ? (searchTerm ? 'No services match your search' : 'No services found') 
+                    : 'Loading services...'
+                  }
                 </TableCell>
               </TableRow>
             )}
