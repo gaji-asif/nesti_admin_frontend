@@ -32,6 +32,7 @@ export default function NewServiceForm() {
     { label: "Turku", value: "turku" },
     { label: "Oulu", value: "oulu" },
     { label: "Vantaa", value: "vantaa" },
+    { label: "Espoo", value: "espoo" },
   ];
 
   const categoryOptions = [
@@ -169,6 +170,7 @@ export default function NewServiceForm() {
             <Select
               options={locationOptions}
               placeholder="Select a country"
+              value={formData.location}
               onChange={handleSelectChange("location")}
               className="dark:bg-dark-900"
             />
@@ -185,6 +187,7 @@ export default function NewServiceForm() {
               placeholder="Select a city"
               onChange={handleSelectChange("city")}
               className="dark:bg-dark-900"
+              value={formData.city}
             />
           </div>
           {errors.city && (
