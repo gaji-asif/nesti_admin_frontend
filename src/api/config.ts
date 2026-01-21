@@ -13,7 +13,7 @@ export const api = axios.create({
 api.interceptors.request.use(
     (config) => {
         // Use hardcoded token for temporary access
-        const token = '586|UitdCR2W7GUj4khebvpb0adhKuiuQPOm2M4CEyocebbfa855';
+        const token = '609|X9GPwd5aPs1mREIJIP3FxHGQXhymblDYbp6S5MJQ702ae68b';
 
         if (token) {
             //add authorization header to the request

@@ -1,5 +1,4 @@
-import Alert from "../components/ui/alert/Alert";
-import { api, ApiResponse } from "./config";
+import { api } from "./config";
 
 export interface Service {
   id: number;
@@ -90,7 +89,8 @@ export const deleteService = async (id: number): Promise<void> => {
 // Function to get all services
 export const getServices = async (): Promise<Service[]> => {
   try {
-    const response = await api.get("/services");
+    const response = await api.get("/all-services");
+    console.log("Services fetched successfully:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error fetching services:", error);

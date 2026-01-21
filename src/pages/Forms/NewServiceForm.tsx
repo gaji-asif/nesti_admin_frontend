@@ -152,6 +152,7 @@ export default function NewServiceForm() {
             <Select
               options={categoryOptions}
               placeholder="Select a service category"
+              value={formData.serviceCategory}
               onChange={handleSelectChange("serviceCategory")}
               className="dark:bg-dark-900"
             />
