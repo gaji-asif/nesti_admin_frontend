@@ -4,7 +4,7 @@ import Input from "../../components/form/input/InputField";
 import Select from "../../components/form/Select";
 import TextArea from "../../components/form/input/TextArea";
 import { useState } from "react";
-import { addService, CreateServiceData } from "../../api/servicesAPI";
+import { addService } from "../../api/servicesAPI";
 
 export default function NewServiceForm() {
   const [shortDescription, setShortDescription] = useState("");
