@@ -14,24 +14,28 @@ export interface Service {
   created_by: number;
   updated_at: string;
   created_at: string;
+  ispartner: boolean;
+  discount?: string;
 }
 
 // Interface for creating a new service
 export interface CreateServiceData {
   name: string;
   category_id: number;
-  location: string;
+  location?: string;
   city: string;
   rating?: number | null;
   address: string;
   website?: string;
   description?: string;
   short_description: string;
+  ispartner: boolean;
+  discount?: string;
 }
 
 // Function to add new service
 export const addService = async (
-  serviceData: CreateServiceData
+  serviceData: FormData | CreateServiceData
 ): Promise<Service> => {
   try {
     const response = await api.post("/add-service", serviceData);
