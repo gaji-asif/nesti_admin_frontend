@@ -96,9 +96,8 @@ export default function AddCategory() {
             type="submit"
             className="px-4 py-2 text-sm font-medium rounded-md transition-colors bg-brand-500 text-white hover:bg-brand-600"
           >
-{
-            submitting ? "Adding..." : "Add Category"
-}          </button>
+            {submitting ? "Adding..." : "Add Category"}
+          </button>
         </div>
       </form>
     </ComponentCard>
