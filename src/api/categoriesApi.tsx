@@ -42,7 +42,7 @@ export const getAllCategories = async (): Promise<Category[]> => {
 // Function to delete a category
 export const deleteCategory = async (id: number): Promise<void> => {
   try {
-    await api.delete(`/categories/${id}`);
+    await api.delete(`/delete-category/${id}`);
     console.log("Category deleted successfully");
   } catch (error) {
     console.error("Error deleting category:", error);
