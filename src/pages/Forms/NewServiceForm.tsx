@@ -4,27 +4,22 @@ import Input from "../../components/form/input/InputField";
 import Select from "../../components/form/Select";
 import TextArea from "../../components/form/input/TextArea";
 import { useState } from "react";
-import { addService, CreateServiceData } from "../../api/servicesAPI";
+import { addService } from "../../api/servicesAPI";
 
 export default function NewServiceForm() {
   const [shortDescription, setShortDescription] = useState("");
-  const [fullDescription, setFullDescription] = useState("");
+  const [image, setImage] = useState<File | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [formData, setFormData] = useState({
     serviceName: "",
     serviceCategory: "",
     rating: "",
-    location: "",
     city: "",
     address: "",
     serviceWebsite: "",
+    ispartner: "",
+    discount: "",
   });
-
-  const locationOptions = [
-    { label: "Finland", value: "finland" },
-    { label: "Sweden", value: "sweden" },
-    { label: "Norway", value: "norway" },
-  ];
 
   const cityOptions = [
     { label: "Helsinki", value: "helsinki" },
@@ -32,6 +27,7 @@ export default function NewServiceForm() {
     { label: "Turku", value: "turku" },
     { label: "Oulu", value: "oulu" },
     { label: "Vantaa", value: "vantaa" },
+    { label: "Espoo", value: "espoo" },
   ];
 
   const categoryOptions = [
@@ -72,14 +68,17 @@ export default function NewServiceForm() {
     if (!formData.serviceCategory.trim()) {
       newErrors.serviceCategory = "Service category is required";
     }
-    if (!formData.location) {
-      newErrors.location = "Please select a location";
-    }
     if (!formData.city) {
       newErrors.city = "Please select a city";
     }
     if (!formData.address.trim()) {
       newErrors.address = "Address is required";
+    }
+    if (!formData.ispartner) {
+      newErrors.ispartner = "Please select if partner";
+    }
+    if (formData.ispartner === "yes" && !formData.discount.trim()) {
+      newErrors.discount = "Discount is required for partners";
     }
     if (!shortDescription.trim()) {
       newErrors.shortDescription = "Short description is required";
@@ -93,20 +92,20 @@ export default function NewServiceForm() {
     e.preventDefault();
     
     if (validateForm()) {
-      const submissionData: CreateServiceData = {
-        name: formData.serviceName,
-        category_id: parseInt(formData.serviceCategory),
-        location: formData.location,
-        city: formData.city,
-        rating: formData.rating ? parseInt(formData.rating) : null,
-        address: formData.address,
-        website: formData.serviceWebsite,
-        description: fullDescription,
-        short_description: shortDescription,
-      };
+      const formDataToSend = new FormData();
+      formDataToSend.append('name', formData.serviceName);
+      formDataToSend.append('category_id', formData.serviceCategory);
+      formDataToSend.append('city', formData.city);
+      if (formData.rating) formDataToSend.append('rating', formData.rating);
+      formDataToSend.append('address', formData.address);
+      if (formData.serviceWebsite) formDataToSend.append('website', formData.serviceWebsite);
+      formDataToSend.append('short_description', shortDescription);
+      formDataToSend.append('ispartner', formData.ispartner === "yes" ? "1" : "0");
+      if (formData.ispartner === "yes" && formData.discount) formDataToSend.append('discount', formData.discount);
+      if (image) formDataToSend.append('image', image);
 
       try {
-        const newService = await addService(submissionData);
+        const newService = await addService(formDataToSend);
         console.log("✅ Service added successfully:", newService);
         console.log(`Service "${newService.name}" added successfully with ID ${newService.id}`);
         alert("New service added successfully!");
@@ -115,13 +114,14 @@ export default function NewServiceForm() {
           serviceName: "",
           serviceCategory: "",
           rating: "",
-          location: "",
           city: "",
           address: "",
           serviceWebsite: "",
+          ispartner: "",
+          discount: "",
         });
         setShortDescription("");
-        setFullDescription("");
+        setImage(null);
         setErrors({});
       } catch (error) {
         console.error("❌ Error adding service:", error);
@@ -164,20 +164,6 @@ export default function NewServiceForm() {
           )}
         </div>
         <div>
-          <Label>Location</Label>
-          <div className="relative">
-            <Select
-              options={locationOptions}
-              placeholder="Select a country"
-              onChange={handleSelectChange("location")}
-              className="dark:bg-dark-900"
-            />
-          </div>
-          {errors.location && (
-            <p className="mt-1.5 text-xs text-error-500">{errors.location}</p>
-          )}
-        </div>
-        <div>
           <Label>City</Label>
           <div className="relative">
             <Select
@@ -185,6 +171,7 @@ export default function NewServiceForm() {
               placeholder="Select a city"
               onChange={handleSelectChange("city")}
               className="dark:bg-dark-900"
+              value={formData.city}
             />
           </div>
           {errors.city && (
@@ -216,6 +203,52 @@ export default function NewServiceForm() {
           />
         </div>
         <div>
+          <Label>Nesti's Partner</Label>
+          <div className="flex space-x-2">
+            <button
+              type="button"
+              onClick={() => handleSelectChange("ispartner")("yes")}
+              className={`px-4 py-2 rounded-md transition-colors ${
+                formData.ispartner === "yes"
+                  ? "bg-brand-500 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-dark-800 dark:text-gray-300 dark:hover:bg-dark-700"
+              }`}
+            >
+              Yes
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSelectChange("ispartner")("no")}
+              className={`px-4 py-2 rounded-md transition-colors ${
+                formData.ispartner === "no"
+                  ? "bg-brand-500 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-dark-800 dark:text-gray-300 dark:hover:bg-dark-700"
+              }`}
+            >
+              No
+            </button>
+          </div>
+          {errors.ispartner && (
+            <p className="mt-1.5 text-xs text-error-500">{errors.ispartner}</p>
+          )}
+        </div>
+        {formData.ispartner === "yes" && (
+          <div>
+            <Label htmlFor="discount">Discount</Label>
+            <Input
+              type="text"
+              id="discount"
+              className="w-80"
+              value={formData.discount}
+              onChange={handleInputChange("discount")}
+              placeholder="Enter discount"
+            />
+            {errors.discount && (
+              <p className="mt-1.5 text-xs text-error-500">{errors.discount}</p>
+            )}
+          </div>
+        )}
+        <div>
           <Label htmlFor="shortDescription">Short Description</Label>
           <TextArea
             rows={3}
@@ -233,14 +266,43 @@ export default function NewServiceForm() {
           />
         </div>
         <div>
-          <Label htmlFor="fullDescription">Full Description (Optional)</Label>
-          <TextArea
-            rows={8}
-            value={fullDescription}
-            onChange={setFullDescription}
-            placeholder="Enter a full description"
-            className="w-80"
-          />
+          <Label htmlFor="image">Service Image</Label>
+          <div className="flex items-center space-x-2">
+            <input
+              type="file"
+              id="image"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0] || null;
+
+                if (!file) {
+                  setImage(null);
+                  return;
+                }
+
+                const isImage = file.type.startsWith("image/");
+                const maxSizeBytes = 5 * 1024 * 1024; // 5 MB
+
+                if (!isImage || file.size > maxSizeBytes) {
+                  window.alert(
+                    `Please select an image file smaller than ${maxSizeBytes / (1024 * 1024)} MB.`
+                  );
+                  setImage(null);
+                  return;
+                }
+
+                setImage(file);
+              }}
+              className="hidden"
+            />
+            <label
+              htmlFor="image"
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md cursor-pointer hover:bg-gray-300 dark:bg-dark-800 dark:text-gray-300 dark:hover:bg-dark-700 transition-colors"
+            >
+              Choose File
+            </label>
+            {image && <span className="text-sm text-gray-600 dark:text-gray-400">{image.name}</span>}
+          </div>
         </div>
         <div className="flex justify-center">
           <button

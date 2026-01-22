@@ -1,6 +1,7 @@
 import axios from "axios";
 
-export const API_URL = 'https://api.nesticommunity.com/api';
+export const API_URL = '/api';
+//export const API_URL = 'https://api.nesticommunity.com/api';
 //export const API_URL = 'http://localhost/NestiApp/public/api';
 export const api = axios.create({
     baseURL: API_URL,
@@ -12,8 +13,8 @@ export const api = axios.create({
 // Add request interceptor to automatically include bearer token
 api.interceptors.request.use(
     (config) => {
-        // Use hardcoded token for temporary access
-        const token = '609|X9GPwd5aPs1mREIJIP3FxHGQXhymblDYbp6S5MJQ702ae68b';
+        // Use environment variable for the token (secure and configurable)
+        const token = import.meta.env.VITE_API_TOKEN;
 
         if (token) {
             //add authorization header to the request

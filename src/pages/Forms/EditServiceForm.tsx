@@ -156,12 +156,12 @@ export default function EditServiceForm({ serviceId: propServiceId, onSuccess }:
 
     try{
         await updateService(submissionData);
-        if (onSuccess) onSuccess
+        if (onSuccess) onSuccess()
         else navigate("/all-services");
     } catch (error) {
         console.error("Update failed,", error);
         alert("Simulated success: (API error)");
-        if (onSuccess) onSuccess
+        if (onSuccess) onSuccess()
         else navigate("/all-services");
     } finally {
         setSubmitting(false);

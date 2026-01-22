@@ -15,4 +15,13 @@ export default defineConfig({
       },
     }),
   ],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://api.nesticommunity.com',
+        changeOrigin: true,
+        secure: true,
+      },
+    },
+  },
 });

@@ -11,6 +11,7 @@ import LineChart from "./pages/Charts/LineChart";
 import BarChart from "./pages/Charts/BarChart";
 import Calendar from "./pages/Calendar";
 import AllServices from "./pages/Tables/AllServices";
+import AllCategories from "./pages/Tables/AllCategories";
 import NewServiceForm from "./pages/Forms/NewServiceForm";
 import EditServiceForm from "./pages/Forms/EditServiceForm";
 import Blank from "./pages/Blank";
@@ -41,6 +42,7 @@ export default function App() {
 
             {/* Tables */}
             <Route path="/all-services" element={<AllServices />} />
+            <Route path="/all-categories" element={<AllCategories />} />
 
             {/* Ui Elements */}
             <Route path="/alerts" element={<Alerts />} />

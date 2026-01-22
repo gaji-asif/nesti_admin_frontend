@@ -52,7 +52,10 @@ const navItems: NavItem[] = [
     {
       name: "All services",
       icon: <TableIcon />,
-      subItems: [{ name: "All services", path: "/all-services", pro: false }],
+      subItems: [
+        { name: "All services", path: "/all-services", pro: false },
+        { name: "All categories", path: "/all-categories", pro: false },
+      ],
     },
   //   {
   //     name: "Pages",

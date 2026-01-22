@@ -7,67 +7,61 @@ import {
 } from "../../ui/table";
 
 import Button from "../../ui/button/Button";
-import { PencilIcon, TrashBinIcon } from "../../../icons";
-import { useNavigate } from "react-router";
+import { TrashBinIcon } from "../../../icons";
 import { useState, useEffect } from "react";
-import { getServices, deleteService, Service } from "../../../api/servicesAPI";
+import { getAllCategories, deleteCategory, Category } from "../../../api/categoriesApi";
 
-export default function AllServices() {
-  const navigate = useNavigate();
-  const [services, setServices] = useState<Service[]>([]);
+export default function AllCategories() {
+  const [categories, setCategories] = useState<Category[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    const fetchServices = async () => {
+    const fetchCategories = async () => {
       try {
-        const data: any = await getServices();
+        const data: any = await getAllCategories();
         console.log('Full API response:', data);
         console.log('Type of data:', typeof data);
         console.log('Is array?', Array.isArray(data));
-        
+
         // Handle different response structures
-        let servicesArray: Service[] = [];
+        let categoriesArray: Category[] = [];
         if (Array.isArray(data)) {
-          servicesArray = data;
-        } else if (data && Array.isArray(data.services)) {
-          servicesArray = data.services;
+          categoriesArray = data;
+        } else if (data && Array.isArray(data.categories)) {
+          categoriesArray = data.categories;
         } else if (data && Array.isArray(data.data)) {
-          servicesArray = data.data;
+          categoriesArray = data.data;
         } else {
           console.warn('Unexpected API response structure:', data);
         }
-        
-        console.log('Services array:', servicesArray);
-        setServices(servicesArray);
+
+        console.log('Categories array:', categoriesArray);
+        setCategories(categoriesArray);
       } catch (error) {
-        console.error('Error fetching services:', error);
-        setServices([]);
+        console.error('Error fetching categories:', error);
+        setCategories([]);
       }
     };
-    fetchServices();
+    fetchCategories();
   }, []);
 
   const handleDelete = async (id: number) => {
     try {
-      await deleteService(id);
-      setServices(services.filter(s => s.id !== id));
+      await deleteCategory(id);
+      setCategories(categories.filter(c => c.id !== id));
     } catch (error) {
-      console.error('Error deleting service:', error);
+      console.error('Error deleting category:', error);
     }
   };
 
-  const filteredServices = services.filter(service => {
+  const filteredCategories = categories.filter(category => {
     if (!searchTerm) return true;
-    
+
     const searchLower = searchTerm.toLowerCase();
     return (
-      service.id.toString().includes(searchLower) ||
-      (service.name || '').toLowerCase().includes(searchLower) ||
-      service.category_id?.toString().includes(searchLower) ||
-      (service.city || '').toLowerCase().includes(searchLower) ||
-      (service.address || '').toLowerCase().includes(searchLower) ||
-      (service.website || '').toLowerCase().includes(searchLower) ||
-      service.rating?.toString().includes(searchLower)
+      category.id.toString().includes(searchLower) ||
+      (category.name || '').toLowerCase().includes(searchLower) ||
+      (category.description || '').toLowerCase().includes(searchLower)
     );
   });
 
@@ -79,18 +73,18 @@ export default function AllServices() {
           <div className="flex-1">
             <input
               type="text"
-              placeholder="Search services..."
+              placeholder="Search categories..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             />
           </div>
           <div className="text-sm text-gray-500 dark:text-gray-400">
-            {filteredServices.length} of {services.length} services
+            {filteredCategories.length} of {categories.length} categories
           </div>
         </div>
       </div>
-      
+
       <div className="max-w-full overflow-x-auto">
         <Table>
           <TableHeader className="border-b border-gray-200 bg-gray-50 dark:border-white/[0.1] dark:bg-gray-800">
@@ -111,37 +105,19 @@ export default function AllServices() {
                 isHeader
                 className="px-5 py-3 font-bold text-gray-900 text-start text-theme-sm dark:text-white"
               >
-                Category ID
+                Description
               </TableCell>
               <TableCell
                 isHeader
                 className="px-5 py-3 font-bold text-gray-900 text-start text-theme-sm dark:text-white"
               >
-                City
+                Created At
               </TableCell>
               <TableCell
                 isHeader
                 className="px-5 py-3 font-bold text-gray-900 text-start text-theme-sm dark:text-white"
               >
-                Address
-              </TableCell>
-              <TableCell
-                isHeader
-                className="px-5 py-3 font-bold text-gray-900 text-start text-theme-sm dark:text-white"
-              >
-                Contact
-              </TableCell>
-              <TableCell
-                isHeader
-                className="px-5 py-3 font-bold text-gray-900 text-start text-theme-sm dark:text-white"
-              >
-                Rating
-              </TableCell>
-              <TableCell
-                isHeader
-                className="px-5 py-3 font-bold text-gray-900 text-start text-theme-sm dark:text-white"
-              >
-                Edit
+                Updated At
               </TableCell>
               <TableCell
                 isHeader
@@ -149,54 +125,39 @@ export default function AllServices() {
               >
                 Delete
               </TableCell>
-          
+
             </TableRow>
           </TableHeader>
 
           {/* Table Body */}
           <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-            {Array.isArray(filteredServices) && filteredServices.length > 0 ? filteredServices.map((service) => (
-              <TableRow key={service.id}>
+            {Array.isArray(filteredCategories) && filteredCategories.length > 0 ? filteredCategories.map((category) => (
+              <TableRow key={category.id}>
                 <TableCell className="px-5 py-4 sm:px-6 text-start text-theme-sm dark:text-white">
-                  {service.id}
+                  {category.id}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  {service.name ? service.name.replace(/\b\w/g, l => l.toUpperCase()) : 'Unnamed Service'}
+                  {category.name ? category.name.replace(/\b\w/g, l => l.toUpperCase()) : 'Unnamed Category'}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  {service.category_id !== null ? service.category_id : 'Unknown category'}
+                  {category.description ? category.description : 'No description'}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  {service.city ? service.city.replace(/\b\w/g, l => l.toUpperCase()) : 'Unknown location'}
+                  {category.created_at ? new Date(category.created_at).toLocaleDateString() : 'Unknown'}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  {service.address ? service.address.replace(/\b\w/g, l => l.toUpperCase()) : 'Unknown address'}
-                </TableCell>
-                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  {service.website ? (
-                    <a href={service.website} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                      Contact
-                    </a>
-                  ) : (
-                    <span className="text-gray-400">No contact</span>
-                  )}
-                </TableCell>
-                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  {service.rating !== null ? service.rating : 'Not rated'}
-                </TableCell>
-                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  <Button size="sm" onClick={() => navigate(`/edit-service/${service.id}`)}><PencilIcon /></Button>
+                  {category.updated_at ? new Date(category.updated_at).toLocaleDateString() : 'Unknown'}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-red-500 text-start text-theme-sm dark:text-red-400">
-                  <Button size="sm" className="bg-red-500 hover:bg-red-600 text-white" onClick={() => handleDelete(service.id)}><TrashBinIcon /></Button>
+                  <Button size="sm" className="bg-red-500 hover:bg-red-600 text-white" onClick={() => handleDelete(category.id)}><TrashBinIcon /></Button>
                 </TableCell>
               </TableRow>
             )) : (
               <TableRow>
-                <TableCell colSpan={9} className="px-4 py-8 text-center text-gray-500">
-                  {Array.isArray(services) 
-                    ? (searchTerm ? 'No services match your search' : 'No services found') 
-                    : 'Loading services...'
+                <TableCell className="px-4 py-8 text-center text-gray-500">
+                  {Array.isArray(categories)
+                    ? (searchTerm ? 'No categories match your search' : 'No categories found')
+                    : 'Loading categories...'
                   }
                 </TableCell>
               </TableRow>
