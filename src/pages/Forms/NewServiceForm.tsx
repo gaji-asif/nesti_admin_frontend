@@ -6,7 +6,6 @@ import TextArea from "../../components/form/input/TextArea";
 import { useState, useEffect } from "react";
 import { addService } from "../../api/servicesAPI";
 import { getAllCategories, Category } from "../../api/categoriesApi";
-import { data } from "react-router";
 
 export default function NewServiceForm() {
   const [shortDescription, setShortDescription] = useState("");

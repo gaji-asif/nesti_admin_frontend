@@ -16,6 +16,8 @@ export default function AllServices() {
   const navigate = useNavigate();
   const [services, setServices] = useState<Service[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [loadedCount, setLoadedCount] = useState(10);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -67,9 +69,18 @@ export default function AllServices() {
       (service.city || '').toLowerCase().includes(searchLower) ||
       (service.address || '').toLowerCase().includes(searchLower) ||
       (service.website || '').toLowerCase().includes(searchLower) ||
-      service.rating?.toString().includes(searchLower)
+      service.rating?.toString().includes(searchLower) ||
+      (service.discount || '').toLowerCase().includes(searchLower)
     );
   });
+
+  // Reset loaded count when search changes
+  useEffect(() => {
+    setLoadedCount(10);
+  }, [searchTerm]);
+
+  const displayedServices = filteredServices.slice(0, loadedCount);
+  const hasMore = loadedCount < filteredServices.length;
 
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
@@ -86,7 +97,7 @@ export default function AllServices() {
             />
           </div>
           <div className="text-sm text-gray-500 dark:text-gray-400">
-            {filteredServices.length} of {services.length} services
+            {displayedServices.length} of {filteredServices.length} services
           </div>
         </div>
       </div>
@@ -141,6 +152,12 @@ export default function AllServices() {
                 isHeader
                 className="px-5 py-3 font-bold text-gray-900 text-start text-theme-sm dark:text-white"
               >
+                Discount
+              </TableCell>
+              <TableCell
+                isHeader
+                className="px-5 py-3 font-bold text-gray-900 text-start text-theme-sm dark:text-white"
+              >
                 Edit
               </TableCell>
               <TableCell
@@ -155,7 +172,7 @@ export default function AllServices() {
 
           {/* Table Body */}
           <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-            {Array.isArray(filteredServices) && filteredServices.length > 0 ? filteredServices.map((service) => (
+            {Array.isArray(displayedServices) && displayedServices.length > 0 ? displayedServices.map((service) => (
               <TableRow key={service.id}>
                 <TableCell className="px-5 py-4 sm:px-6 text-start text-theme-sm dark:text-white">
                   {service.id}
@@ -185,6 +202,9 @@ export default function AllServices() {
                   {service.rating !== null ? service.rating : 'Not rated'}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                  {service.discount ? service.discount : 'No discount'}
+                </TableCell>
+                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                   <Button size="sm" onClick={() => navigate(`/edit-service/${service.id}`)}><PencilIcon /></Button>
                 </TableCell>
                 <TableCell className="px-4 py-3 text-red-500 text-start text-theme-sm dark:text-red-400">
@@ -204,6 +224,19 @@ export default function AllServices() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Load More */}
+      {hasMore && (
+        <div className="flex justify-center px-4 py-3 bg-white border-t border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+          <Button
+            size="sm"
+            onClick={() => setLoadedCount(prev => prev + itemsPerPage)}
+            className="px-4 py-1 bg-blue-500 text-white hover:bg-blue-600"
+          >
+            Load More
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
