@@ -272,7 +272,27 @@ export default function NewServiceForm() {
               type="file"
               id="image"
               accept="image/*"
-              onChange={(e) => setImage(e.target.files?.[0] || null)}
+              onChange={(e) => {
+                const file = e.target.files?.[0] || null;
+
+                if (!file) {
+                  setImage(null);
+                  return;
+                }
+
+                const isImage = file.type.startsWith("image/");
+                const maxSizeBytes = 5 * 1024 * 1024; // 5 MB
+
+                if (!isImage || file.size > maxSizeBytes) {
+                  window.alert(
+                    `Please select an image file smaller than ${maxSizeBytes / (1024 * 1024)} MB.`
+                  );
+                  setImage(null);
+                  return;
+                }
+
+                setImage(file);
+              }}
               className="hidden"
             />
             <label
