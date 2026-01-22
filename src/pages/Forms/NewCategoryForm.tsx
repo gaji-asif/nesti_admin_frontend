@@ -3,6 +3,7 @@ import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
 import TextArea from "../../components/form/input/TextArea";
 import { useState } from "react";
+import { addCategory } from "../../api/categoriesApi";
 
 interface CategoryForm {
   categoryName: string;
@@ -23,12 +24,6 @@ export default function AddCategory() {
     setFormData((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
-  // For components that return a value directly (TextArea, Select)
-  const handleValueChange = (field: keyof CategoryForm) => (value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
-  };
-
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
     if (!formData.categoryName.trim()) {
@@ -42,11 +37,14 @@ export default function AddCategory() {
     e.preventDefault();
     if (!validate()) return;
     setSubmitting(true);
-    //Simulate api call
     try {
-      console.log("Submitting", formData);
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //mock delay
+      const categoryData = {
+        name: formData.categoryName,
+        description: formData.categoryDescription,
+      };
+      const newCategory = await addCategory(categoryData);
       alert("Category added successfully!");
+      console.log("New category:", newCategory);
       // Reset form
       setFormData({
         categoryName: "",
@@ -54,11 +52,10 @@ export default function AddCategory() {
       });
     } catch (error) {
       console.error("Error adding category:", error);
-    }
-    finally {
+      alert("Failed to add category. Please try again.");
+    } finally {
       setSubmitting(false);
     }
-    console.log("Form submitted", formData);
   };
 
   return (
