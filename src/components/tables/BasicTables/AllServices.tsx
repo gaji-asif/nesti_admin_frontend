@@ -213,7 +213,7 @@ export default function AllServices() {
               </TableRow>
             )) : (
               <TableRow>
-                <TableCell colSpan={9} className="px-4 py-8 text-center text-gray-500">
+                <TableCell className="px-4 py-8 text-center text-gray-500" colSpan={10}>
                   {Array.isArray(services) 
                     ? (searchTerm ? 'No services match your search' : 'No services found') 
                     : 'Loading services...'
