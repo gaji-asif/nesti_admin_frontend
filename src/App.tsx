@@ -8,7 +8,7 @@ import Badges from "./pages/UiElements/Badges";
 import Avatars from "./pages/UiElements/Avatars";
 import Buttons from "./pages/UiElements/Buttons";
 import LineChart from "./pages/Charts/LineChart";
-import BarChart from "./pages/Charts/BarChart";
+// import BarChart from "./pages/Charts/BarChart";
 import Calendar from "./pages/Calendar";
 import AllServices from "./pages/Tables/AllServices";
 import AllCategories from "./pages/Tables/AllCategories";
@@ -54,7 +54,7 @@ export default function App() {
 
             {/* Charts */}
             <Route path="/line-chart" element={<LineChart />} />
-            <Route path="/bar-chart" element={<BarChart />} />
+            {/* <Route path="/bar-chart" element={<BarChart />} /> */}
           </Route>
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />

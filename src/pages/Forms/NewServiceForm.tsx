@@ -3,13 +3,16 @@ import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
 import Select from "../../components/form/Select";
 import TextArea from "../../components/form/input/TextArea";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { addService } from "../../api/servicesAPI";
+import { getAllCategories, Category } from "../../api/categoriesApi";
 
 export default function NewServiceForm() {
   const [shortDescription, setShortDescription] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     serviceName: "",
     serviceCategory: "",
@@ -30,17 +33,49 @@ export default function NewServiceForm() {
     { label: "Espoo", value: "espoo" },
   ];
 
-  const categoryOptions = [
-    { label: "Uniohjaus", value: "1" },
-    { label: "Imetysohjaus", value: "2" },
-    { label: "Doula", value: "3" },
-    { label: "Synnytysvalmennus", value: "4" },
-    { label: "Fysioterapia (äidit/lapset)", value: "5" },
-    { label: "Synnytyksen käynnistys", value: "6" },
-    { label: "Vyöhyketerapia", value: "7" },
-    { label: "Kahvila", value: "8" },
-    { label: "Muu", value: "9" },
-  ];
+  const categoryOptions = categories.map(cat => ({ label: cat.name, value: cat.id.toString() }));
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data: any = await getAllCategories();
+        console.log('Full API response:', data);
+        console.log('Type of data:', typeof data);
+        console.log('Is array?', Array.isArray(data));
+
+        // Handle different response structures
+        let categoriesArray: Category[] = [];
+        if (Array.isArray(data)) {
+          categoriesArray = data;
+        } else if (data && Array.isArray(data.categories)) {
+          categoriesArray = data.categories;
+        } else if (data && Array.isArray(data.data)) {
+          categoriesArray = data.data;
+        } else {
+          console.warn('Unexpected API response structure:', data);
+        }
+
+        console.log('Categories array:', categoriesArray);
+        setCategories(categoriesArray);
+      } catch (error) {
+        console.warn("API not available, using mock categories:", error);
+        setCategories([
+          { id: 1, name: "Uniohjaus", description: "", created_at: "", updated_at: "" },
+          { id: 2, name: "Imetysohjaus", description: "", created_at: "", updated_at: "" },
+          { id: 3, name: "Doula", description: "", created_at: "", updated_at: "" },
+          { id: 4, name: "Synnytysvalmennus", description: "", created_at: "", updated_at: "" },
+          { id: 5, name: "Fysioterapia (äidit/lapset)", description: "", created_at: "", updated_at: "" },
+          { id: 6, name: "Synnytyksen käynnistys", description: "", created_at: "", updated_at: "" },
+          { id: 7, name: "Vyöhyketerapia", description: "", created_at: "", updated_at: "" },
+          { id: 8, name: "Kahvila", description: "", created_at: "", updated_at: "" },
+          { id: 9, name: "Muu", description: "", created_at: "", updated_at: "" },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const handleSelectChange = (field: string) => (value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -129,6 +164,8 @@ export default function NewServiceForm() {
       }
     }
   };
+
+  if (loading) return <ComponentCard title="New Service Form"><div className="text-center py-8">Loading categories...</div></ComponentCard>;
 
   return (
     <ComponentCard title="New Service Form">

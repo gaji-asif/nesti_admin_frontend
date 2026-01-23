@@ -6,6 +6,7 @@ import TextArea from "../../components/form/input/TextArea";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
 import { updateService, UpdateServiceData, Service, getServices } from "../../api/servicesAPI";
+import { getAllCategories, Category } from "../../api/categoriesApi";
 
 interface EditServiceFormProps {
   serviceId?: number;
@@ -32,6 +33,7 @@ export default function EditServiceForm({ serviceId: propServiceId, onSuccess }:
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [submitting, setSubmitting] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [formData, setFormData] = useState<ServiceFormData>({
     serviceName: "",
     serviceCategory: "",
@@ -58,22 +60,26 @@ export default function EditServiceForm({ serviceId: propServiceId, onSuccess }:
     { label: "Vantaa", value: "vantaa" },
   ];
 
-  const categoryOptions = [
-    { label: "Uniohjaus", value: "1" },
-    { label: "Imetysohjaus", value: "2" },
-    { label: "Doula", value: "3" },
-    { label: "Synnytysvalmennus", value: "4" },
-    { label: "Fysioterapia (äidit/lapset)", value: "5" },
-    { label: "Synnytyksen käynnistys", value: "6" },
-    { label: "Vyöhyketerapia", value: "7" },
-    { label: "Kahvila", value: "8" },
-    { label: "Muu", value: "9" },
-  ];
+  const categoryOptions = categories.map(cat => ({ label: cat.name, value: cat.id.toString() }));
 
   useEffect(() => {
-    const fetchService = async () => {
+    const fetchData = async () => {
       try {
-        const services = await getServices();
+        const [services, catsData] = await Promise.all([getServices(), getAllCategories()]);
+        
+        // Handle different response structures for categories
+        let categoriesArray: Category[] = [];
+        if (Array.isArray(catsData)) {
+          categoriesArray = catsData as Category[];
+        } else if (catsData && typeof catsData === "object" && "categories" in catsData) {
+          categoriesArray = (catsData as any).categories;
+        } else if (catsData && typeof catsData === "object" && "data" in catsData) {
+          categoriesArray = (catsData as any).data;
+        } else {
+          console.warn('Unexpected categories API response structure:', catsData);
+        }
+        
+        setCategories(categoriesArray);
         const service = services.find((s: Service) => s.id === serviceId);
         
         if (service) {
@@ -105,12 +111,24 @@ export default function EditServiceForm({ serviceId: propServiceId, onSuccess }:
         }
       } catch (error) {
         console.warn("API not available, using mock data for demonstration:", error);
+        // Set mock categories
+        setCategories([
+          { id: 1, name: "Uniohjaus", description: "", created_at: "", updated_at: "" },
+          { id: 2, name: "Imetysohjaus", description: "", created_at: "", updated_at: "" },
+          { id: 3, name: "Doula", description: "", created_at: "", updated_at: "" },
+          { id: 4, name: "Synnytysvalmennus", description: "", created_at: "", updated_at: "" },
+          { id: 5, name: "Fysioterapia (äidit/lapset)", description: "", created_at: "", updated_at: "" },
+          { id: 6, name: "Synnytyksen käynnistys", description: "", created_at: "", updated_at: "" },
+          { id: 7, name: "Vyöhyketerapia", description: "", created_at: "", updated_at: "" },
+          { id: 8, name: "Kahvila", description: "", created_at: "", updated_at: "" },
+          { id: 9, name: "Muu", description: "", created_at: "", updated_at: "" },
+        ]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchService();
+    fetchData();
   }, [serviceId]);
 
   // Handler for direct value changes (Select, TextArea)

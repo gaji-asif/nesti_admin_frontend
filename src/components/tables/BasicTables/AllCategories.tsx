@@ -7,13 +7,17 @@ import {
 } from "../../ui/table";
 
 import Button from "../../ui/button/Button";
-import { TrashBinIcon } from "../../../icons";
+import { TrashBinIcon, PencilIcon } from "../../../icons";
+import { useNavigate } from "react-router";
 import { useState, useEffect } from "react";
 import { getAllCategories, deleteCategory, Category } from "../../../api/categoriesApi";
 
 export default function AllCategories() {
+  const navigate = useNavigate();
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [loadedCount, setLoadedCount] = useState(10);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -65,6 +69,14 @@ export default function AllCategories() {
     );
   });
 
+  // Reset loaded count when search changes
+  useEffect(() => {
+    setLoadedCount(10);
+  }, [searchTerm]);
+
+  const displayedCategories = filteredCategories.slice(0, loadedCount);
+  const hasMore = loadedCount < filteredCategories.length;
+
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       {/* Search Bar */}
@@ -80,7 +92,7 @@ export default function AllCategories() {
             />
           </div>
           <div className="text-sm text-gray-500 dark:text-gray-400">
-            {filteredCategories.length} of {categories.length} categories
+            {displayedCategories.length} of {filteredCategories.length} categories
           </div>
         </div>
       </div>
@@ -111,13 +123,7 @@ export default function AllCategories() {
                 isHeader
                 className="px-5 py-3 font-bold text-gray-900 text-start text-theme-sm dark:text-white"
               >
-                Created At
-              </TableCell>
-              <TableCell
-                isHeader
-                className="px-5 py-3 font-bold text-gray-900 text-start text-theme-sm dark:text-white"
-              >
-                Updated At
+                Edit
               </TableCell>
               <TableCell
                 isHeader
@@ -131,7 +137,7 @@ export default function AllCategories() {
 
           {/* Table Body */}
           <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-            {Array.isArray(filteredCategories) && filteredCategories.length > 0 ? filteredCategories.map((category) => (
+            {Array.isArray(displayedCategories) && displayedCategories.length > 0 ? displayedCategories.map((category) => (
               <TableRow key={category.id}>
                 <TableCell className="px-5 py-4 sm:px-6 text-start text-theme-sm dark:text-white">
                   {category.id}
@@ -139,14 +145,11 @@ export default function AllCategories() {
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                   {category.name ? category.name.replace(/\b\w/g, l => l.toUpperCase()) : 'Unnamed Category'}
                 </TableCell>
-                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 min-w-[250px]">
                   {category.description ? category.description : 'No description'}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  {category.created_at ? new Date(category.created_at).toLocaleDateString() : 'Unknown'}
-                </TableCell>
-                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  {category.updated_at ? new Date(category.updated_at).toLocaleDateString() : 'Unknown'}
+                  <Button size="sm" onClick={() => navigate(`/edit-category/${category.id}`)}><PencilIcon /></Button>
                 </TableCell>
                 <TableCell className="px-4 py-3 text-red-500 text-start text-theme-sm dark:text-red-400">
                   <Button size="sm" className="bg-red-500 hover:bg-red-600 text-white" onClick={() => handleDelete(category.id)}><TrashBinIcon /></Button>
@@ -165,6 +168,19 @@ export default function AllCategories() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Load More */}
+      {hasMore && (
+        <div className="flex justify-center px-4 py-3 bg-white border-t border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+          <Button
+            size="sm"
+            onClick={() => setLoadedCount(prev => prev + itemsPerPage)}
+            className="px-4 py-1 bg-blue-500 text-white hover:bg-blue-600"
+          >
+            Load More
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

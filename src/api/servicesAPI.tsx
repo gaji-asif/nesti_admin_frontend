@@ -14,8 +14,10 @@ export interface Service {
   created_by: number;
   updated_at: string;
   created_at: string;
-  ispartner: boolean;
+  // ispartner: boolean;
   discount?: string;
+  image: string | null;
+  image_url: string | null;
 }
 
 // Interface for creating a new service
@@ -29,7 +31,7 @@ export interface CreateServiceData {
   website?: string;
   description?: string;
   short_description: string;
-  ispartner: boolean;
+  // ispartner: boolean;
   discount?: string;
 }
 
