@@ -38,11 +38,7 @@ export default function NewServiceForm() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const [services, catsData] = await Promise.all([
-          getAllCategories(),
-          getAllCategories()
-        ]);
-        const data: any = catsData;
+        const data: any = await getAllCategories();
         console.log('Full API response:', data);
         console.log('Type of data:', typeof data);
         console.log('Is array?', Array.isArray(data));
