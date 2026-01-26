@@ -4,17 +4,15 @@ import Input from "../../components/form/input/InputField";
 import Select from "../../components/form/Select";
 import MultiSelect from "../../components/form/MultiSelect";
 import TextArea from "../../components/form/input/TextArea";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { addService } from "../../api/servicesAPI";
-import { getAllCategories, Category } from "../../api/categoriesApi";
-import { api } from "../../api/config";
+import { useCategories, formatCategoryOptions } from "../../hooks/useApiData";
 
 export default function NewServiceForm() {
   const [shortDescription, setShortDescription] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { categories, loading } = useCategories();
   const [formData, setFormData] = useState({
     serviceName: "",
     serviceCategories: [] as string[],
@@ -36,49 +34,9 @@ export default function NewServiceForm() {
     { label: "Espoo", value: "espoo" },
   ];
 
-  const categoryOptions = categories.map(category => ({ text: category.name, value: category.id.toString() }));
+  const categoryOptions = formatCategoryOptions(categories);
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const data: any = await getAllCategories();
-        console.log('Full API response:', data);
-        console.log('Type of data:', typeof data);
-        console.log('Is array?', Array.isArray(data));
 
-        // Handle different response structures
-        let categoriesArray: Category[] = [];
-        if (Array.isArray(data)) {
-          categoriesArray = data;
-        } else if (data && Array.isArray(data.categories)) {
-          categoriesArray = data.categories;
-        } else if (data && Array.isArray(data.data)) {
-          categoriesArray = data.data;
-        } else {
-          console.warn('Unexpected API response structure:', data);
-        }
-
-        console.log('Categories array:', categoriesArray);
-        setCategories(categoriesArray);
-      } catch (error) {
-        console.warn("API not available, using mock categories:", error);
-        setCategories([
-          { id: 1, name: "Uniohjaus", description: "", created_at: "", updated_at: "" },
-          { id: 2, name: "Imetysohjaus", description: "", created_at: "", updated_at: "" },
-          { id: 3, name: "Doula", description: "", created_at: "", updated_at: "" },
-          { id: 4, name: "Synnytysvalmennus", description: "", created_at: "", updated_at: "" },
-          { id: 5, name: "Fysioterapia (äidit/lapset)", description: "", created_at: "", updated_at: "" },
-          { id: 6, name: "Synnytyksen käynnistys", description: "", created_at: "", updated_at: "" },
-          { id: 7, name: "Vyöhyketerapia", description: "", created_at: "", updated_at: "" },
-          { id: 8, name: "Kahvila", description: "", created_at: "", updated_at: "" },
-          { id: 9, name: "Muu", description: "", created_at: "", updated_at: "" },
-        ]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCategories();
-  }, []);
 
   const handleSelectChange = (field: string) => (value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -140,19 +98,6 @@ export default function NewServiceForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const categoryIds = formData.serviceCategories.map(id => Number(id));
-    const apiPayload = {
-      name: formData.serviceName,
-      category_ids: categoryIds,
-      city: formData.city,
-      address: formData.address,
-      rating: formData.rating ? Number(formData.rating) : null,
-      website: formData.serviceWebsite || undefined,
-      is_partner: formData.is_partner,
-      discount: formData.discount,
-      discount_text: formData.discount_text,
-    short_description: shortDescription
-    };
     if (validateForm()) {
       const formDataToSend = new FormData();
       formDataToSend.append('name', formData.serviceName);
@@ -173,7 +118,7 @@ export default function NewServiceForm() {
       if (image) formDataToSend.append('image', image);
 
       try {
-        const response = await addService(apiPayload );
+        const response = await addService(formDataToSend);
         console.log("✅ Service added successfully:", response);
         
         // Handle the response structure - response is already the service data
