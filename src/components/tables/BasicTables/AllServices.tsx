@@ -65,7 +65,7 @@ export default function AllServices() {
     return (
       service.id.toString().includes(searchLower) ||
       (service.name || '').toLowerCase().includes(searchLower) ||
-      service.category_id?.toString().includes(searchLower) ||
+      service.category_ids?.toString().includes(searchLower) ||
       (service.city || '').toLowerCase().includes(searchLower) ||
       (service.address || '').toLowerCase().includes(searchLower) ||
       (service.website || '').toLowerCase().includes(searchLower) ||
@@ -122,7 +122,7 @@ export default function AllServices() {
                 isHeader
                 className="px-5 py-3 font-bold text-gray-900 text-start text-theme-sm dark:text-white"
               >
-                Category ID
+                Categories
               </TableCell>
               <TableCell
                 isHeader
@@ -181,7 +181,11 @@ export default function AllServices() {
                   {service.name ? service.name.replace(/\b\w/g, l => l.toUpperCase()) : 'Unnamed Service'}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  {service.category_id !== null ? service.category_id : 'Unknown category'}
+                  {service.category_ids && Array.isArray(service.category_ids) 
+                    ? service.category_ids.length > 0 
+                      ? service.category_ids.join(', ') 
+                      : 'No categories'
+                    : 'Unknown category'}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                   {service.city ? service.city.replace(/\b\w/g, l => l.toUpperCase()) : 'Unknown location'}
@@ -213,7 +217,7 @@ export default function AllServices() {
               </TableRow>
             )) : (
               <TableRow>
-                <TableCell className="px-4 py-8 text-center text-gray-500" colSpan={10}>
+                <TableCell className="px-4 py-8 text-center text-gray-500">
                   {Array.isArray(services) 
                     ? (searchTerm ? 'No services match your search' : 'No services found') 
                     : 'Loading services...'

@@ -3,19 +3,20 @@ import { api } from "./config";
 export interface Service {
   id: number;
   name: string;
-  category_id: number;
-  location: string;
+  category_ids: number[] | null;
+  location: string | null;
   city: string;
   rating: number | null;
   address: string;
-  website: string;
-  description: string;
+  website: string | null;
+  description: string | null;
   short_description: string;
   created_by: number;
   updated_at: string;
   created_at: string;
-  // ispartner: boolean;
+  is_partner: string;
   discount?: string;
+  discount_text?: string;
   image: string | null;
   image_url: string | null;
 }
@@ -23,7 +24,7 @@ export interface Service {
 // Interface for creating a new service
 export interface CreateServiceData {
   name: string;
-  category_id: number;
+  category_ids: number[];
   location?: string;
   city: string;
   rating?: number | null;
@@ -31,8 +32,9 @@ export interface CreateServiceData {
   website?: string;
   description?: string;
   short_description: string;
-  // ispartner: boolean;
+  is_partner?: string;
   discount?: string;
+  discount_text?: string;
 }
 
 // Function to add new service
@@ -43,7 +45,6 @@ export const addService = async (
     const response = await api.post("/add-service", serviceData);
 
     console.log("Service added successfully:", response.data);
-    console.log("Next service Id to be assigned:", response.data.id + 1);
     return response.data;
   } catch (error) {
     console.error("Error adding service:", error);
@@ -55,7 +56,7 @@ export const addService = async (
 export interface UpdateServiceData {
   id: number;
   name?: string;
-  category_id?: number;
+  category_ids?: number[];
   location?: string;
   city?: string;
   rating?: number | null;
@@ -63,6 +64,9 @@ export interface UpdateServiceData {
   website?: string;
   description?: string;
   short_description?: string;
+  is_partner?: string;
+  discount?: string;
+  discount_text?: string;
 }
 
 // Function to update a service

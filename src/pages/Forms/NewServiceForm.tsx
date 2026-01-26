@@ -2,10 +2,12 @@ import ComponentCard from "../../components/common/ComponentCard";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
 import Select from "../../components/form/Select";
+import MultiSelect from "../../components/form/MultiSelect";
 import TextArea from "../../components/form/input/TextArea";
 import { useState, useEffect } from "react";
 import { addService } from "../../api/servicesAPI";
 import { getAllCategories, Category } from "../../api/categoriesApi";
+import { api } from "../../api/config";
 
 export default function NewServiceForm() {
   const [shortDescription, setShortDescription] = useState("");
@@ -15,13 +17,14 @@ export default function NewServiceForm() {
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     serviceName: "",
-    serviceCategory: "",
+    serviceCategories: [] as string[],
     rating: "",
     city: "",
     address: "",
     serviceWebsite: "",
-    ispartner: "",
+    is_partner: "",
     discount: "",
+    discount_text: "",
   });
 
   const cityOptions = [
@@ -33,7 +36,7 @@ export default function NewServiceForm() {
     { label: "Espoo", value: "espoo" },
   ];
 
-  const categoryOptions = categories.map(cat => ({ label: cat.name, value: cat.id.toString() }));
+  const categoryOptions = categories.map(category => ({ text: category.name, value: category.id.toString() }));
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -85,6 +88,14 @@ export default function NewServiceForm() {
     }
   };
 
+  const handleMultiSelectChange = (selectedCategories: string[]) => {
+    setFormData((prev) => ({ ...prev, serviceCategories: selectedCategories }));
+    // Clear error when user makes a selection
+    if (errors.serviceCategories) {
+      setErrors((prev) => ({ ...prev, serviceCategories: "" }));
+    }
+  };
+
   const handleInputChange =
     (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
       setFormData((prev) => ({ ...prev, [field]: e.target.value }));
@@ -100,8 +111,8 @@ export default function NewServiceForm() {
     if (!formData.serviceName.trim()) {
       newErrors.serviceName = "Service name is required";
     }
-    if (!formData.serviceCategory.trim()) {
-      newErrors.serviceCategory = "Service category is required";
+    if (!formData.serviceCategories || formData.serviceCategories.length === 0) {
+      newErrors.serviceCategories = "At least one service category is required";
     }
     if (!formData.city) {
       newErrors.city = "Please select a city";
@@ -109,11 +120,14 @@ export default function NewServiceForm() {
     if (!formData.address.trim()) {
       newErrors.address = "Address is required";
     }
-    if (!formData.ispartner) {
-      newErrors.ispartner = "Please select if partner";
+    if (!formData.is_partner) {
+      newErrors.is_partner = "Please select if partner";
     }
-    if (formData.ispartner === "yes" && !formData.discount.trim()) {
+    if (formData.is_partner === "yes" && !formData.discount.trim()) {
       newErrors.discount = "Discount is required for partners";
+    }
+    if (formData.is_partner === "yes" && !formData.discount_text.trim()) {
+      newErrors.discount_text = "Discount text is required for partners";
     }
     if (!shortDescription.trim()) {
       newErrors.shortDescription = "Short description is required";
@@ -126,34 +140,60 @@ export default function NewServiceForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const categoryIds = formData.serviceCategories.map(id => Number(id));
+    const apiPayload = {
+      name: formData.serviceName,
+      category_ids: categoryIds,
+      city: formData.city,
+      address: formData.address,
+      rating: formData.rating ? Number(formData.rating) : null,
+      website: formData.serviceWebsite || undefined,
+      is_partner: formData.is_partner,
+      discount: formData.discount,
+      discount_text: formData.discount_text,
+    short_description: shortDescription
+    };
     if (validateForm()) {
       const formDataToSend = new FormData();
       formDataToSend.append('name', formData.serviceName);
-      formDataToSend.append('category_id', formData.serviceCategory);
+      
+      // Send each category ID as separate form field with same name
+      formData.serviceCategories.forEach((categoryId) => {
+        formDataToSend.append('category_ids[]', categoryId);
+      });
+      
       formDataToSend.append('city', formData.city);
       if (formData.rating) formDataToSend.append('rating', formData.rating);
       formDataToSend.append('address', formData.address);
       if (formData.serviceWebsite) formDataToSend.append('website', formData.serviceWebsite);
       formDataToSend.append('short_description', shortDescription);
-      formDataToSend.append('ispartner', formData.ispartner === "yes" ? "1" : "0");
-      if (formData.ispartner === "yes" && formData.discount) formDataToSend.append('discount', formData.discount);
+      formDataToSend.append('is_partner', formData.is_partner === "yes" ? "1" : "0");
+      if (formData.is_partner === "yes" && formData.discount) formDataToSend.append('discount', formData.discount);
+      if (formData.is_partner === "yes" && formData.discount_text) formDataToSend.append('discount_text', formData.discount_text);
       if (image) formDataToSend.append('image', image);
 
       try {
-        const newService = await addService(formDataToSend);
-        console.log("✅ Service added successfully:", newService);
-        console.log(`Service "${newService.name}" added successfully with ID ${newService.id}`);
+        const response = await addService(apiPayload );
+        console.log("✅ Service added successfully:", response);
+        
+        // Handle the response structure - response is already the service data
+        const serviceData = response;
+        const serviceName = serviceData.name || formData.serviceName;
+        const serviceId = serviceData.id || 'Unknown';
+        
+        console.log(`Service "${serviceName}" added successfully with ID ${serviceId}`);
         alert("New service added successfully!");
         // Reset form after successful submission
         setFormData({
           serviceName: "",
-          serviceCategory: "",
+          serviceCategories: [],
           rating: "",
           city: "",
           address: "",
           serviceWebsite: "",
-          ispartner: "",
+          is_partner: "",
           discount: "",
+          discount_text: "",
         });
         setShortDescription("");
         setImage(null);
@@ -184,19 +224,19 @@ export default function NewServiceForm() {
           )}
         </div>
         <div>
-          <Label>Service Category</Label>
+          <Label>Service Categories</Label>
           <div className="relative">
-            <Select
+            <MultiSelect
+              label=""
               options={categoryOptions}
-              placeholder="Select a service category"
-              value={formData.serviceCategory}
-              onChange={handleSelectChange("serviceCategory")}
-              className="dark:bg-dark-900"
+              placeholder="Select service categories"
+              value={formData.serviceCategories}
+              onChange={handleMultiSelectChange}
             />
           </div>
-          {errors.serviceCategory && (
+          {errors.serviceCategories && (
             <p className="mt-1.5 text-xs text-error-500">
-              {errors.serviceCategory}
+              {errors.serviceCategories}
             </p>
           )}
         </div>
@@ -244,9 +284,9 @@ export default function NewServiceForm() {
           <div className="flex space-x-2">
             <button
               type="button"
-              onClick={() => handleSelectChange("ispartner")("yes")}
+              onClick={() => handleSelectChange("is_partner")("yes")}
               className={`px-4 py-2 rounded-md transition-colors ${
-                formData.ispartner === "yes"
+                formData.is_partner === "yes"
                   ? "bg-brand-500 text-white"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-dark-800 dark:text-gray-300 dark:hover:bg-dark-700"
               }`}
@@ -255,9 +295,9 @@ export default function NewServiceForm() {
             </button>
             <button
               type="button"
-              onClick={() => handleSelectChange("ispartner")("no")}
+              onClick={() => handleSelectChange("is_partner")("no")}
               className={`px-4 py-2 rounded-md transition-colors ${
-                formData.ispartner === "no"
+                formData.is_partner === "no"
                   ? "bg-brand-500 text-white"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-dark-800 dark:text-gray-300 dark:hover:bg-dark-700"
               }`}
@@ -265,25 +305,41 @@ export default function NewServiceForm() {
               No
             </button>
           </div>
-          {errors.ispartner && (
-            <p className="mt-1.5 text-xs text-error-500">{errors.ispartner}</p>
+          {errors.is_partner && (
+            <p className="mt-1.5 text-xs text-error-500">{errors.is_partner}</p>
           )}
         </div>
-        {formData.ispartner === "yes" && (
-          <div>
-            <Label htmlFor="discount">Discount</Label>
-            <Input
-              type="text"
-              id="discount"
-              className="w-80"
-              value={formData.discount}
-              onChange={handleInputChange("discount")}
-              placeholder="Enter discount"
-            />
-            {errors.discount && (
-              <p className="mt-1.5 text-xs text-error-500">{errors.discount}</p>
-            )}
-          </div>
+        {formData.is_partner === "yes" && (
+          <>
+            <div>
+              <Label htmlFor="discount">Discount</Label>
+              <Input
+                type="text"
+                id="discount"
+                className="w-80"
+                value={formData.discount}
+                onChange={handleInputChange("discount")}
+                placeholder="Enter discount"
+              />
+              {errors.discount && (
+                <p className="mt-1.5 text-xs text-error-500">{errors.discount}</p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="discount_text">Discount Text</Label>
+              <Input
+                type="text"
+                id="discount_text"
+                className="w-80"
+                value={formData.discount_text}
+                onChange={handleInputChange("discount_text")}
+                placeholder="Enter discount description"
+              />
+              {errors.discount_text && (
+                <p className="mt-1.5 text-xs text-error-500">{errors.discount_text}</p>
+              )}
+            </div>
+          </>
         )}
         <div>
           <Label htmlFor="shortDescription">Short Description</Label>
