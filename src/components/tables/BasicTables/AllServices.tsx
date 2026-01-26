@@ -36,10 +36,11 @@ export default function AllServices() {
     if (!searchTerm) return true;
     
     const searchLower = searchTerm.toLowerCase();
+    const categoryNames = getCategoryNames(service.category_ids, categories).toLowerCase();
     return (
       service.id.toString().includes(searchLower) ||
       (service.name || '').toLowerCase().includes(searchLower) ||
-      service.category_ids?.toString().includes(searchLower) ||
+      categoryNames.includes(searchLower) ||
       (service.city || '').toLowerCase().includes(searchLower) ||
       (service.address || '').toLowerCase().includes(searchLower) ||
       (service.website || '').toLowerCase().includes(searchLower) ||
