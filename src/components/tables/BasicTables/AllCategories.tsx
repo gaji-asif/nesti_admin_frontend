@@ -9,7 +9,7 @@ import {
 import Button from "../../ui/button/Button";
 import { TrashBinIcon, PencilIcon } from "../../../icons";
 import { useNavigate } from "react-router";
-import { useState, useEffect} from "react";
+import { useState, useEffect } from "react";
 import { deleteCategory } from "../../../api/categoriesApi";
 import { useCategories } from "../../../hooks/useApiData";
 
