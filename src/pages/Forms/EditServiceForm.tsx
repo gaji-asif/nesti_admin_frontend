@@ -61,8 +61,6 @@ export default function EditServiceForm({ serviceId: propServiceId, onSuccess }:
     { label: "Vantaa", value: "vantaa" },
   ];
 
-  const categoryOptions = formatCategoryOptions(categories).map(cat => ({ label: cat.text, value: cat.value }));
-
   useEffect(() => {
     const fetchData = async () => {
       try {
