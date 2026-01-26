@@ -14,7 +14,7 @@ export interface Service {
   created_by: number;
   updated_at: string;
   created_at: string;
-  is_partner: string;
+  is_partner: boolean;
   discount?: string;
   discount_text?: string;
   image: string | null;
