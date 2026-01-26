@@ -2,11 +2,12 @@ import ComponentCard from "../../components/common/ComponentCard";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
 import Select from "../../components/form/Select";
+import MultiSelect from "../../components/form/MultiSelect";
 import TextArea from "../../components/form/input/TextArea";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
 import { updateService, UpdateServiceData, Service, getServices } from "../../api/servicesAPI";
-import { getAllCategories, Category } from "../../api/categoriesApi";
+import { useCategories, formatCategoryOptions } from "../../hooks/useApiData";
 
 interface EditServiceFormProps {
   serviceId?: number;
@@ -15,7 +16,7 @@ interface EditServiceFormProps {
 
 interface ServiceFormData {
   serviceName: string;
-  serviceCategory: string;
+  serviceCategories: string[];
   rating: string;
   location: string;
   city: string;
@@ -33,10 +34,10 @@ export default function EditServiceForm({ serviceId: propServiceId, onSuccess }:
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [submitting, setSubmitting] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const { categories } = useCategories();
   const [formData, setFormData] = useState<ServiceFormData>({
     serviceName: "",
-    serviceCategory: "",
+    serviceCategories: [],
     rating: "",
     location: "",
     city: "",
@@ -60,38 +61,25 @@ export default function EditServiceForm({ serviceId: propServiceId, onSuccess }:
     { label: "Vantaa", value: "vantaa" },
   ];
 
-  const categoryOptions = categories.map(cat => ({ label: cat.name, value: cat.id.toString() }));
-
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [services, catsData] = await Promise.all([getServices(), getAllCategories()]);
+        const services = await getServices();
         
-        // Handle different response structures for categories
-        let categoriesArray: Category[] = [];
-        if (Array.isArray(catsData)) {
-          categoriesArray = catsData as Category[];
-        } else if (catsData && typeof catsData === "object" && "categories" in catsData) {
-          categoriesArray = (catsData as any).categories;
-        } else if (catsData && typeof catsData === "object" && "data" in catsData) {
-          categoriesArray = (catsData as any).data;
-        } else {
-          console.warn('Unexpected categories API response structure:', catsData);
-        }
-        
-        setCategories(categoriesArray);
         const service = services.find((s: Service) => s.id === serviceId);
         
         if (service) {
           setFormData({
             serviceName: service.name,
-            serviceCategory: service.category_id.toString(),
+            serviceCategories: service.category_ids 
+              ? service.category_ids.map(id => id.toString())
+              : [],
             rating: service.rating?.toString() || "",
-            location: service.location,
-            city: service.city,
-            address: service.address,
+            location: service.location || "",
+            city: service.city || "",
+            address: service.address || "",
             serviceWebsite: service.website || "",
-            shortDescription: service.short_description,
+            shortDescription: service.short_description || "",
             fullDescription: service.description || "",
           });
         } else {
@@ -99,7 +87,7 @@ export default function EditServiceForm({ serviceId: propServiceId, onSuccess }:
           console.warn(`Service with ID ${serviceId} not found, using mock data`);
           setFormData({
             serviceName: `Sample Service ${serviceId}`,
-            serviceCategory: "1",
+            serviceCategories: ["1"],
             rating: "4.5",
             location: "finland",
             city: "helsinki",
@@ -111,18 +99,6 @@ export default function EditServiceForm({ serviceId: propServiceId, onSuccess }:
         }
       } catch (error) {
         console.warn("API not available, using mock data for demonstration:", error);
-        // Set mock categories
-        setCategories([
-          { id: 1, name: "Uniohjaus", description: "", created_at: "", updated_at: "" },
-          { id: 2, name: "Imetysohjaus", description: "", created_at: "", updated_at: "" },
-          { id: 3, name: "Doula", description: "", created_at: "", updated_at: "" },
-          { id: 4, name: "Synnytysvalmennus", description: "", created_at: "", updated_at: "" },
-          { id: 5, name: "Fysioterapia (äidit/lapset)", description: "", created_at: "", updated_at: "" },
-          { id: 6, name: "Synnytyksen käynnistys", description: "", created_at: "", updated_at: "" },
-          { id: 7, name: "Vyöhyketerapia", description: "", created_at: "", updated_at: "" },
-          { id: 8, name: "Kahvila", description: "", created_at: "", updated_at: "" },
-          { id: 9, name: "Muu", description: "", created_at: "", updated_at: "" },
-        ]);
       } finally {
         setLoading(false);
       }
@@ -143,11 +119,19 @@ export default function EditServiceForm({ serviceId: propServiceId, onSuccess }:
       handleValueChange(field)(e.target.value);
     };
 
+  const handleMultiSelectChange = (selectedCategories: string[]) => {
+    setFormData((prev) => ({ ...prev, serviceCategories: selectedCategories }));
+    // Clear error when user makes a selection
+    if (errors.serviceCategories) {
+      setErrors((prev) => ({ ...prev, serviceCategories: "" }));
+    }
+  };
+
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
 
     if (!formData.serviceName.trim()) newErrors.serviceName = "Service name is required";
-    if (!formData.serviceCategory.trim()) newErrors.serviceCategory = "Service category is required";
+    if (!formData.serviceCategories || formData.serviceCategories.length === 0) newErrors.serviceCategories = "At least one service category is required";
     if (!formData.location) newErrors.location = "Please select a location";
     if (!formData.city)  newErrors.city = "Please select a city";
     if (!formData.address.trim()) newErrors.address = "Address is required";
@@ -163,7 +147,7 @@ export default function EditServiceForm({ serviceId: propServiceId, onSuccess }:
     const submissionData: UpdateServiceData = {
         id: serviceId,
         name: formData.serviceName,
-        category_id: parseInt(formData.serviceCategory),
+        category_ids: formData.serviceCategories.map(id => parseInt(id)),
         location: formData.location,
         city: formData.city,
         address: formData.address,
@@ -205,18 +189,19 @@ export default function EditServiceForm({ serviceId: propServiceId, onSuccess }:
           )}
         </div>
         <div>
-          <Label>Service Category</Label>
+          <Label>Service Categories</Label>
           <div className="relative">
-            <Select
-              options={categoryOptions}
-              placeholder="Select a service category"
-              onChange={handleValueChange("serviceCategory")}
-              className="dark:bg-dark-900"
+            <MultiSelect
+              label=""
+              options={formatCategoryOptions(categories)}
+              placeholder="Select service categories"
+              value={formData.serviceCategories}
+              onChange={handleMultiSelectChange}
             />
           </div>
-          {errors.serviceCategory && (
+          {errors.serviceCategories && (
             <p className="mt-1.5 text-xs text-error-500">
-              {errors.serviceCategory}
+              {errors.serviceCategories}
             </p>
           )}
         </div>

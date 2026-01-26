@@ -2,26 +2,27 @@ import ComponentCard from "../../components/common/ComponentCard";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
 import Select from "../../components/form/Select";
+import MultiSelect from "../../components/form/MultiSelect";
 import TextArea from "../../components/form/input/TextArea";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { addService } from "../../api/servicesAPI";
-import { getAllCategories, Category } from "../../api/categoriesApi";
+import { useCategories, formatCategoryOptions } from "../../hooks/useApiData";
 
 export default function NewServiceForm() {
   const [shortDescription, setShortDescription] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { categories, loading } = useCategories();
   const [formData, setFormData] = useState({
     serviceName: "",
-    serviceCategory: "",
+    serviceCategories: [] as string[],
     rating: "",
     city: "",
     address: "",
     serviceWebsite: "",
-    ispartner: "",
+    is_partner: "",
     discount: "",
+    discount_text: "",
   });
 
   const cityOptions = [
@@ -33,55 +34,23 @@ export default function NewServiceForm() {
     { label: "Espoo", value: "espoo" },
   ];
 
-  const categoryOptions = categories.map(cat => ({ label: cat.name, value: cat.id.toString() }));
+  const categoryOptions = formatCategoryOptions(categories);
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const data: any = await getAllCategories();
-        console.log('Full API response:', data);
-        console.log('Type of data:', typeof data);
-        console.log('Is array?', Array.isArray(data));
 
-        // Handle different response structures
-        let categoriesArray: Category[] = [];
-        if (Array.isArray(data)) {
-          categoriesArray = data;
-        } else if (data && Array.isArray(data.categories)) {
-          categoriesArray = data.categories;
-        } else if (data && Array.isArray(data.data)) {
-          categoriesArray = data.data;
-        } else {
-          console.warn('Unexpected API response structure:', data);
-        }
-
-        console.log('Categories array:', categoriesArray);
-        setCategories(categoriesArray);
-      } catch (error) {
-        console.warn("API not available, using mock categories:", error);
-        setCategories([
-          { id: 1, name: "Uniohjaus", description: "", created_at: "", updated_at: "" },
-          { id: 2, name: "Imetysohjaus", description: "", created_at: "", updated_at: "" },
-          { id: 3, name: "Doula", description: "", created_at: "", updated_at: "" },
-          { id: 4, name: "Synnytysvalmennus", description: "", created_at: "", updated_at: "" },
-          { id: 5, name: "Fysioterapia (äidit/lapset)", description: "", created_at: "", updated_at: "" },
-          { id: 6, name: "Synnytyksen käynnistys", description: "", created_at: "", updated_at: "" },
-          { id: 7, name: "Vyöhyketerapia", description: "", created_at: "", updated_at: "" },
-          { id: 8, name: "Kahvila", description: "", created_at: "", updated_at: "" },
-          { id: 9, name: "Muu", description: "", created_at: "", updated_at: "" },
-        ]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCategories();
-  }, []);
 
   const handleSelectChange = (field: string) => (value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user makes a selection
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+  };
+
+  const handleMultiSelectChange = (selectedCategories: string[]) => {
+    setFormData((prev) => ({ ...prev, serviceCategories: selectedCategories }));
+    // Clear error when user makes a selection
+    if (errors.serviceCategories) {
+      setErrors((prev) => ({ ...prev, serviceCategories: "" }));
     }
   };
 
@@ -100,8 +69,8 @@ export default function NewServiceForm() {
     if (!formData.serviceName.trim()) {
       newErrors.serviceName = "Service name is required";
     }
-    if (!formData.serviceCategory.trim()) {
-      newErrors.serviceCategory = "Service category is required";
+    if (!formData.serviceCategories || formData.serviceCategories.length === 0) {
+      newErrors.serviceCategories = "At least one service category is required";
     }
     if (!formData.city) {
       newErrors.city = "Please select a city";
@@ -109,11 +78,14 @@ export default function NewServiceForm() {
     if (!formData.address.trim()) {
       newErrors.address = "Address is required";
     }
-    if (!formData.ispartner) {
-      newErrors.ispartner = "Please select if partner";
+    if (!formData.is_partner) {
+      newErrors.is_partner = "Please select if partner";
     }
-    if (formData.ispartner === "yes" && !formData.discount.trim()) {
+    if (formData.is_partner === "yes" && !formData.discount.trim()) {
       newErrors.discount = "Discount is required for partners";
+    }
+    if (formData.is_partner === "yes" && !formData.discount_text.trim()) {
+      newErrors.discount_text = "Discount text is required for partners";
     }
     if (!shortDescription.trim()) {
       newErrors.shortDescription = "Short description is required";
@@ -129,31 +101,44 @@ export default function NewServiceForm() {
     if (validateForm()) {
       const formDataToSend = new FormData();
       formDataToSend.append('name', formData.serviceName);
-      formDataToSend.append('category_id', formData.serviceCategory);
+      
+      // Send each category ID as separate form field with same name
+      formData.serviceCategories.forEach((categoryId) => {
+        formDataToSend.append('category_ids[]', categoryId);
+      });
+      
       formDataToSend.append('city', formData.city);
       if (formData.rating) formDataToSend.append('rating', formData.rating);
       formDataToSend.append('address', formData.address);
       if (formData.serviceWebsite) formDataToSend.append('website', formData.serviceWebsite);
       formDataToSend.append('short_description', shortDescription);
-      formDataToSend.append('ispartner', formData.ispartner === "yes" ? "1" : "0");
-      if (formData.ispartner === "yes" && formData.discount) formDataToSend.append('discount', formData.discount);
+      formDataToSend.append('is_partner', formData.is_partner === "yes" ? "1" : "0");
+      if (formData.is_partner === "yes" && formData.discount) formDataToSend.append('discount', formData.discount);
+      if (formData.is_partner === "yes" && formData.discount_text) formDataToSend.append('discount_text', formData.discount_text);
       if (image) formDataToSend.append('image', image);
 
       try {
-        const newService = await addService(formDataToSend);
-        console.log("✅ Service added successfully:", newService);
-        console.log(`Service "${newService.name}" added successfully with ID ${newService.id}`);
+        const response = await addService(formDataToSend);
+        console.log("✅ Service added successfully:", response);
+        
+        // Handle the response structure - response is already the service data
+        const serviceData = response;
+        const serviceName = serviceData.name || formData.serviceName;
+        const serviceId = serviceData.id || 'Unknown';
+        
+        console.log(`Service "${serviceName}" added successfully with ID ${serviceId}`);
         alert("New service added successfully!");
         // Reset form after successful submission
         setFormData({
           serviceName: "",
-          serviceCategory: "",
+          serviceCategories: [],
           rating: "",
           city: "",
           address: "",
           serviceWebsite: "",
-          ispartner: "",
+          is_partner: "",
           discount: "",
+          discount_text: "",
         });
         setShortDescription("");
         setImage(null);
@@ -184,19 +169,19 @@ export default function NewServiceForm() {
           )}
         </div>
         <div>
-          <Label>Service Category</Label>
+          <Label>Service Categories</Label>
           <div className="relative">
-            <Select
+            <MultiSelect
+              label=""
               options={categoryOptions}
-              placeholder="Select a service category"
-              value={formData.serviceCategory}
-              onChange={handleSelectChange("serviceCategory")}
-              className="dark:bg-dark-900"
+              placeholder="Select service categories"
+              value={formData.serviceCategories}
+              onChange={handleMultiSelectChange}
             />
           </div>
-          {errors.serviceCategory && (
+          {errors.serviceCategories && (
             <p className="mt-1.5 text-xs text-error-500">
-              {errors.serviceCategory}
+              {errors.serviceCategories}
             </p>
           )}
         </div>
@@ -244,9 +229,9 @@ export default function NewServiceForm() {
           <div className="flex space-x-2">
             <button
               type="button"
-              onClick={() => handleSelectChange("ispartner")("yes")}
+              onClick={() => handleSelectChange("is_partner")("yes")}
               className={`px-4 py-2 rounded-md transition-colors ${
-                formData.ispartner === "yes"
+                formData.is_partner === "yes"
                   ? "bg-brand-500 text-white"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-dark-800 dark:text-gray-300 dark:hover:bg-dark-700"
               }`}
@@ -255,9 +240,9 @@ export default function NewServiceForm() {
             </button>
             <button
               type="button"
-              onClick={() => handleSelectChange("ispartner")("no")}
+              onClick={() => handleSelectChange("is_partner")("no")}
               className={`px-4 py-2 rounded-md transition-colors ${
-                formData.ispartner === "no"
+                formData.is_partner === "no"
                   ? "bg-brand-500 text-white"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-dark-800 dark:text-gray-300 dark:hover:bg-dark-700"
               }`}
@@ -265,25 +250,41 @@ export default function NewServiceForm() {
               No
             </button>
           </div>
-          {errors.ispartner && (
-            <p className="mt-1.5 text-xs text-error-500">{errors.ispartner}</p>
+          {errors.is_partner && (
+            <p className="mt-1.5 text-xs text-error-500">{errors.is_partner}</p>
           )}
         </div>
-        {formData.ispartner === "yes" && (
-          <div>
-            <Label htmlFor="discount">Discount</Label>
-            <Input
-              type="text"
-              id="discount"
-              className="w-80"
-              value={formData.discount}
-              onChange={handleInputChange("discount")}
-              placeholder="Enter discount"
-            />
-            {errors.discount && (
-              <p className="mt-1.5 text-xs text-error-500">{errors.discount}</p>
-            )}
-          </div>
+        {formData.is_partner === "yes" && (
+          <>
+            <div>
+              <Label htmlFor="discount">Discount</Label>
+              <Input
+                type="text"
+                id="discount"
+                className="w-80"
+                value={formData.discount}
+                onChange={handleInputChange("discount")}
+                placeholder="Enter discount"
+              />
+              {errors.discount && (
+                <p className="mt-1.5 text-xs text-error-500">{errors.discount}</p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="discount_text">Discount Text</Label>
+              <Input
+                type="text"
+                id="discount_text"
+                className="w-80"
+                value={formData.discount_text}
+                onChange={handleInputChange("discount_text")}
+                placeholder="Enter discount description"
+              />
+              {errors.discount_text && (
+                <p className="mt-1.5 text-xs text-error-500">{errors.discount_text}</p>
+              )}
+            </div>
+          </>
         )}
         <div>
           <Label htmlFor="shortDescription">Short Description</Label>

@@ -10,44 +10,18 @@ import Button from "../../ui/button/Button";
 import { PencilIcon, TrashBinIcon } from "../../../icons";
 import { useNavigate } from "react-router";
 import { useState, useEffect } from "react";
-import { getServices, deleteService, Service } from "../../../api/servicesAPI";
+import { deleteService } from "../../../api/servicesAPI";
+import { useServices, useCategories, getCategoryNames } from "../../../hooks/useApiData";
 
 export default function AllServices() {
   const navigate = useNavigate();
-  const [services, setServices] = useState<Service[]>([]);
+  const { services, setServices } = useServices();
+  const { categories } = useCategories();
   const [searchTerm, setSearchTerm] = useState('');
   const [loadedCount, setLoadedCount] = useState(10);
   const itemsPerPage = 10;
 
-  useEffect(() => {
-    const fetchServices = async () => {
-      try {
-        const data: any = await getServices();
-        console.log('Full API response:', data);
-        console.log('Type of data:', typeof data);
-        console.log('Is array?', Array.isArray(data));
-        
-        // Handle different response structures
-        let servicesArray: Service[] = [];
-        if (Array.isArray(data)) {
-          servicesArray = data;
-        } else if (data && Array.isArray(data.services)) {
-          servicesArray = data.services;
-        } else if (data && Array.isArray(data.data)) {
-          servicesArray = data.data;
-        } else {
-          console.warn('Unexpected API response structure:', data);
-        }
-        
-        console.log('Services array:', servicesArray);
-        setServices(servicesArray);
-      } catch (error) {
-        console.error('Error fetching services:', error);
-        setServices([]);
-      }
-    };
-    fetchServices();
-  }, []);
+
 
   const handleDelete = async (id: number) => {
     try {
@@ -65,7 +39,7 @@ export default function AllServices() {
     return (
       service.id.toString().includes(searchLower) ||
       (service.name || '').toLowerCase().includes(searchLower) ||
-      service.category_id?.toString().includes(searchLower) ||
+      service.category_ids?.toString().includes(searchLower) ||
       (service.city || '').toLowerCase().includes(searchLower) ||
       (service.address || '').toLowerCase().includes(searchLower) ||
       (service.website || '').toLowerCase().includes(searchLower) ||
@@ -122,7 +96,7 @@ export default function AllServices() {
                 isHeader
                 className="px-5 py-3 font-bold text-gray-900 text-start text-theme-sm dark:text-white"
               >
-                Category ID
+                Categories
               </TableCell>
               <TableCell
                 isHeader
@@ -181,7 +155,7 @@ export default function AllServices() {
                   {service.name ? service.name.replace(/\b\w/g, l => l.toUpperCase()) : 'Unnamed Service'}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  {service.category_id !== null ? service.category_id : 'Unknown category'}
+                  {getCategoryNames(service.category_ids, categories)}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                   {service.city ? service.city.replace(/\b\w/g, l => l.toUpperCase()) : 'Unknown location'}
@@ -213,7 +187,7 @@ export default function AllServices() {
               </TableRow>
             )) : (
               <TableRow>
-                <TableCell colSpan={9} className="px-4 py-8 text-center text-gray-500">
+                <TableCell colSpan={10} className="px-4 py-8 text-center text-gray-500">
                   {Array.isArray(services) 
                     ? (searchTerm ? 'No services match your search' : 'No services found') 
                     : 'Loading services...'

@@ -10,44 +10,15 @@ import Button from "../../ui/button/Button";
 import { TrashBinIcon, PencilIcon } from "../../../icons";
 import { useNavigate } from "react-router";
 import { useState, useEffect } from "react";
-import { getAllCategories, deleteCategory, Category } from "../../../api/categoriesApi";
+import { deleteCategory } from "../../../api/categoriesApi";
+import { useCategories } from "../../../hooks/useApiData";
 
 export default function AllCategories() {
   const navigate = useNavigate();
-  const [categories, setCategories] = useState<Category[]>([]);
+  const { categories, setCategories } = useCategories();
   const [searchTerm, setSearchTerm] = useState('');
   const [loadedCount, setLoadedCount] = useState(10);
   const itemsPerPage = 10;
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const data: any = await getAllCategories();
-        console.log('Full API response:', data);
-        console.log('Type of data:', typeof data);
-        console.log('Is array?', Array.isArray(data));
-
-        // Handle different response structures
-        let categoriesArray: Category[] = [];
-        if (Array.isArray(data)) {
-          categoriesArray = data;
-        } else if (data && Array.isArray(data.categories)) {
-          categoriesArray = data.categories;
-        } else if (data && Array.isArray(data.data)) {
-          categoriesArray = data.data;
-        } else {
-          console.warn('Unexpected API response structure:', data);
-        }
-
-        console.log('Categories array:', categoriesArray);
-        setCategories(categoriesArray);
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-        setCategories([]);
-      }
-    };
-    fetchCategories();
-  }, []);
 
   const handleDelete = async (id: number) => {
     try {
