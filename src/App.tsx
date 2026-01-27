@@ -7,7 +7,7 @@ import Alerts from "./pages/UiElements/Alerts";
 import Badges from "./pages/UiElements/Badges";
 import Avatars from "./pages/UiElements/Avatars";
 import Buttons from "./pages/UiElements/Buttons";
-import LineChart from "./pages/Charts/LineChart";
+// import LineChart from "./pages/Charts/LineChart";
 // import BarChart from "./pages/Charts/BarChart";
 import Calendar from "./pages/Calendar";
 import AllServices from "./pages/Tables/AllServices";
@@ -53,7 +53,7 @@ export default function App() {
             <Route path="/videos" element={<Videos />} />
 
             {/* Charts */}
-            <Route path="/line-chart" element={<LineChart />} />
+            {/* <Route path="/line-chart" element={<LineChart />} /> */}
             {/* <Route path="/bar-chart" element={<BarChart />} /> */}
           </Route>
           {/* Fallback Route */}

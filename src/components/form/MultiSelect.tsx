@@ -1,5 +1,5 @@
 import type React from "react";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 
 interface Option {
   value: string;
@@ -23,7 +23,6 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   value,
   onChange,
   disabled = false,
-  placeholder = "Select options",
 }) => {
   const isControlled = value !== undefined;
   const [internalSelected, setInternalSelected] =
