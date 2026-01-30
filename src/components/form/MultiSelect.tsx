@@ -67,6 +67,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
                 <span
                   key={value}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-blue-500 rounded-full hover:bg-blue-600 transition-colors"
+                  style={{ fontFamily: '"Outfit", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}
                 >
                   {text}
                   <button
@@ -101,6 +102,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
                     ? "bg-blue-500 text-white border-blue-500 hover:bg-blue-600"
                     : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700"
                 } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                style={{ fontFamily: '"Outfit", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}
               >
                 {option.text}
               </button>
