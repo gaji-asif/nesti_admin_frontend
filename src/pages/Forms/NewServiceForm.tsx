@@ -32,6 +32,11 @@ export default function NewServiceForm() {
     { label: "Oulu", value: "oulu" },
     { label: "Vantaa", value: "vantaa" },
     { label: "Espoo", value: "espoo" },
+    { label: "Lahti", value: "lahti" },
+    // { label: "Jyväskylä", value: "jyvaskyla" },
+    // { label: "Kuopio", value: "kuopio" },
+    // { label: "Joensuu", value: "joensuu" },
+    // { label: "Rovaniemi", value: "rovaniemi" },
   ];
 
   const categoryOptions = formatCategoryOptions(categories);
