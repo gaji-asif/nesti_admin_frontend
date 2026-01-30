@@ -186,7 +186,7 @@ export default function NewServiceForm() {
           )}
         </div>
         <div>
-          <Label>City</Label>
+          <Label>City YY</Label>
           <div className="relative">
             <Select
               options={cityOptions}
