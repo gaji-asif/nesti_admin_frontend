@@ -65,8 +65,10 @@ export default function Select({
           rounded-md shadow-sm px-3 py-2 text-left cursor-pointer
           focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500
           flex justify-between items-center
+          font-sans
           ${disabled ? "bg-gray-100 cursor-not-allowed opacity-60" : ""}
         `}
+        style={{ fontFamily: '"Outfit", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}
       >
         <span className={`block truncate ${!selectedOption ? "text-gray-400" : "text-gray-900 dark:text-gray-100"}`}>
           {selectedOption ? selectedOption.label : placeholder}
