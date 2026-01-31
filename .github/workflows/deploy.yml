@@ -1,0 +1,42 @@
+name: Deploy React App to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Prepare SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to EC2 and build
+        env:
+          HOST: ${{ secrets.EC2_HOST }}
+          USER: ${{ secrets.EC2_USER }}
+        run: |
+          ssh $USER@$HOST << 'EOF'
+            set -e
+            cd /var/www/nesti_admin_frontend
+            echo "Deploy started at $(date)" >> deploy-log.txt
+            git fetch origin main
+            git reset --hard origin/main
+            git clean -fd
+            git pull origin main
+            npm ci
+            npm run build
+            echo "Build finished at $(date)" >> deploy-log.txt
+            sudo systemctl reload nginx
+          EOF
