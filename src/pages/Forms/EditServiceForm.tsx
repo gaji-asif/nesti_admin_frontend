@@ -59,6 +59,7 @@ export default function EditServiceForm({ serviceId: propServiceId, onSuccess }:
     { label: "Turku", value: "turku" },
     { label: "Oulu", value: "oulu" },
     { label: "Vantaa", value: "vantaa" },
+    { label: "Lahti", value: "lahti" },
   ];
 
   useEffect(() => {
