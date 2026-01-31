@@ -32,6 +32,7 @@ export default function NewServiceForm() {
     { label: "Oulu", value: "oulu" },
     { label: "Vantaa", value: "vantaa" },
     { label: "Espoo", value: "espoo" },
+    { label: "Lahti", value: "lahti" },
   ];
 
   const categoryOptions = formatCategoryOptions(categories);
@@ -186,7 +187,7 @@ export default function NewServiceForm() {
           )}
         </div>
         <div>
-          <Label>City YY</Label>
+          <Label>City</Label>
           <div className="relative">
             <Select
               options={cityOptions}

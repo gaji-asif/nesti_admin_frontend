@@ -77,13 +77,13 @@ export default function AllCategories() {
                 isHeader
                 className="px-5 py-3 font-bold text-gray-900 text-start text-theme-sm dark:text-white"
               >
-                IDDDDDD
+                ID
               </TableCell>
               <TableCell
                 isHeader
                 className="px-5 py-3 font-bold text-gray-900 text-start text-theme-sm dark:text-white"
               >
-                Names  tesgggf
+                Names
               </TableCell>
               <TableCell
                 isHeader
