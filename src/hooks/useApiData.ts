@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getServices, Service } from '../api/servicesAPI';
+import { parseId } from '../utils/parseId';
+import { normalizeServiceResponse } from '../utils/apiNormalize';
 import { getAllCategories, Category } from '../api/categoriesApi';
 
 // Custom hook for fetching categories
@@ -127,14 +129,16 @@ export const formatCategoryOptions = (categories: Category[]) => {
 };
 
 // Custom hook for getting a single service by ID
-export const useService = (serviceId: number) => {
+export const useService = (serviceId?: number | string) => {
     const [service, setService] = useState<Service | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchService = async () => {
-            if (!serviceId) return;
+            if (serviceId === undefined || serviceId === null || serviceId === '') { setService(null); setLoading(false); return; }
+            const idNumber = parseId(serviceId);
+            if (idNumber === undefined) { setService(null); setLoading(false); return; }
 
             try {
                 setLoading(true);
@@ -142,20 +146,15 @@ export const useService = (serviceId: number) => {
 
                 const data: any = await getServices();
 
-                // Handle different response structures
-                let servicesArray: Service[] = [];
-                if (Array.isArray(data)) {
-                    servicesArray = data;
-                } else if (data && Array.isArray(data.services)) {
-                    servicesArray = data.services;
-                } else if (data && Array.isArray(data.data)) {
-                    servicesArray = data.data;
+                const normalized = normalizeServiceResponse(data);
+                if (Array.isArray(normalized)) {
+                    const found = normalized.find((s: Service) => s.id === idNumber);
+                    setService(found || null);
+                } else {
+                    setService(normalized || null);
                 }
-
-                const foundService = servicesArray.find((s: Service) => s.id === serviceId);
-                setService(foundService || null);
             } catch (error) {
-                console.error('Error fetching service:', error);
+                console.error('Error fetching service by id:', error);
                 setError('Failed to fetch service');
                 setService(null);
             } finally {

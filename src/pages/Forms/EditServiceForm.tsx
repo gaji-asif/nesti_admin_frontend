@@ -6,8 +6,9 @@ import MultiSelect from "../../components/form/MultiSelect";
 import TextArea from "../../components/form/input/TextArea";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
-import { updateService, UpdateServiceData, getServiceById } from "../../api/servicesAPI";
-import { useCategories, formatCategoryOptions } from "../../hooks/useApiData";
+import { updateService, UpdateServiceData, getServices } from "../../api/servicesAPI";
+import { useCategories, formatCategoryOptions, useService} from "../../hooks/useApiData";
+import { normalizeListResponse } from "../../utils/apiNormalize";
 
 interface EditServiceFormProps {
   serviceId?: number;
@@ -23,13 +24,13 @@ interface ServiceFormData {
   address: string;
   serviceWebsite: string;
   shortDescription: string;
-  fullDescription: string;
+  image: string | File | null;
 }
 
 export default function EditServiceForm({ serviceId: propServiceId, onSuccess }: EditServiceFormProps) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const serviceId = propServiceId || (id ? parseInt(id) : 0);
+  const serviceId = propServiceId || (id ? parseInt(id, 10) : undefined);
   
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -44,8 +45,9 @@ export default function EditServiceForm({ serviceId: propServiceId, onSuccess }:
     address: "",
     serviceWebsite: "",
     shortDescription: "",
-    fullDescription: "",
+    image: null,
     });
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const locationOptions = [
     { label: "Finland", value: "finland" },
@@ -62,55 +64,68 @@ export default function EditServiceForm({ serviceId: propServiceId, onSuccess }:
     { label: "Lahti", value: "lahti" },
   ];
 
+
+  // Use shared hook to fetch single service
+  const { service: fetchedService, loading: serviceLoading } = useService(serviceId as number | string | undefined);
+
   useEffect(() => {
-    const fetchData = async () => {
+    const populateFromService = (serviceResponseData: any) => {
+      setFormData({
+        serviceName: serviceResponseData.name || "",
+        serviceCategories: serviceResponseData.category_ids ? serviceResponseData.category_ids.map((categoryId: any) => String(categoryId)) : [],
+        rating: serviceResponseData.rating?.toString() || "",
+        location: serviceResponseData.location || "",
+        city: serviceResponseData.city || "",
+        address: serviceResponseData.address || "",
+        serviceWebsite: serviceResponseData.website || "",
+        shortDescription: serviceResponseData.short_description || "",
+        image: null,
+      });
+      setImagePreview(serviceResponseData.image_url || serviceResponseData.image || null);
+    };
+
+    const load = async () => {
+      if (serviceLoading) {
+        setLoading(true);
+        return;
+      }
+
+      setLoading(false);
+
+      if (fetchedService && (fetchedService as any).id) {
+        populateFromService(fetchedService);
+        return;
+      }
+
+      // Fallback: fetch all services and try to find the one by id
+      if (!serviceId) return;
       try {
-        // Fetch single service by ID (more efficient and robust)
-        const resp: any = await getServiceById(serviceId);
-
-        // Normalize various possible response wrappers
-        let service: any = resp;
-        if (!service) service = null;
-        else if (service.data && service.data.id) service = service.data;
-        else if (service.service && service.service.id) service = service.service;
-
-        if (service && service.id) {
-          setFormData({
-            serviceName: service.name || "",
-            serviceCategories: service.category_ids
-              ? service.category_ids.map((cid: any) => String(cid))
-              : [],
-            rating: service.rating?.toString() || "",
-            location: service.location || "",
-            city: service.city || "",
-            address: service.address || "",
-            serviceWebsite: service.website || "",
-            shortDescription: service.short_description || "",
-            fullDescription: service.description || "",
-          });
-        } else {
-          console.warn(`Service with ID ${serviceId} not found, using mock data`);
-          setFormData({
-            serviceName: `Sample Service ${serviceId}`,
-            serviceCategories: ["1"],
-            rating: "4.5",
-            location: "finland",
-            city: "helsinki",
-            address: `Sample Address ${serviceId}`,
-            serviceWebsite: "https://example.com",
-            shortDescription: `This is a sample short description for service ${serviceId}`,
-            fullDescription: `This is a sample full description for service ${serviceId}. It contains more detailed information about the service.`,
-          });
+        const raw: any = await getServices();
+        console.log('Fallback raw getServices response:', raw);
+        let allServices: any = normalizeListResponse(raw);
+        if (!Array.isArray(allServices)) {
+          console.warn('normalizeListResponse returned non-array, attempting coercion:', allServices);
+          if (Array.isArray(raw)) allServices = raw;
+          else if (raw && Array.isArray(raw.data)) allServices = raw.data;
+          else if (raw && Array.isArray(raw.services)) allServices = raw.services;
+          else if (raw && typeof raw === 'object') allServices = Object.values(raw);
+          else allServices = [];
         }
-      } catch (error) {
-        console.warn("API not available, using mock data for demonstration:", error);
-      } finally {
-        setLoading(false);
+        console.log('Fallback allServices (final):', allServices);
+        const found = (allServices || []).find((s: any) => String(s.id) === String(serviceId));
+        if (found) {
+          console.log('Fallback found service:', found);
+          populateFromService(found);
+        } else {
+          console.warn('Service not found in fallback list for id', serviceId);
+        }
+      } catch (err) {
+        console.error('Fallback getServices failed', err);
       }
     };
 
-    fetchData();
-  }, [serviceId]);
+    load();
+  }, [fetchedService, serviceLoading, serviceId]);
 
   // Handler for direct value changes (Select, TextArea)
   const handleValueChange = (field: keyof ServiceFormData) => (value: string) => {
@@ -132,6 +147,15 @@ export default function EditServiceForm({ serviceId: propServiceId, onSuccess }:
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+      setFormData(prev => ({ ...prev, image: file }));
+      const url = URL.createObjectURL(file);
+      setImagePreview(url);
+    }
+  };
+
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
 
@@ -148,30 +172,83 @@ export default function EditServiceForm({ serviceId: propServiceId, onSuccess }:
     const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
-    setSubmitting(true);
-    const submissionData: UpdateServiceData = {
-        id: serviceId,
-        name: formData.serviceName,
-        category_ids: formData.serviceCategories.map(id => parseInt(id)),
-        location: formData.location,
-        city: formData.city,
-        address: formData.address,
-        website: formData.serviceWebsite,
-        short_description: formData.shortDescription,
-        description: formData.fullDescription,
-    };
 
-    try{
-        await updateService(submissionData);
-        if (onSuccess) onSuccess()
-        else navigate("/all-services");
-    } catch (error: any) {
-        console.error("Update failed,", error);
-        alert(`Failed to update service: ${error.response?.data?.message || error.message}`);
-    } finally {
-        setSubmitting(false);
+    const nameTrim = formData.serviceName?.trim?.() || "";
+    if (!nameTrim) {
+      setErrors((prev) => ({ ...prev, serviceName: "Service name is required" }));
+      return;
     }
-};
+    if (!formData.city) {
+      setErrors((prev) => ({ ...prev, city: "City is required" }));
+      return;
+    }
+
+    if (!serviceId) {
+      alert('Service ID is missing. Cannot update service.');
+      return;
+    }
+    
+    setSubmitting(true);
+
+    try {
+      let payload: UpdateServiceData | FormData;
+      
+      // Use FormData only when we have a new image file to upload
+      if (formData.image instanceof File) {
+        console.log('Before building FormData:', { serviceName: formData.serviceName, city: formData.city, serviceId });
+        const fd = new FormData();
+        fd.append('id', String(serviceId));
+        fd.append('name', nameTrim);
+        fd.append('city', String(formData.city));
+        fd.append('location', formData.location || '');
+        fd.append('address', formData.address.trim());
+        fd.append('website', formData.serviceWebsite || '');
+        fd.append('short_description', formData.shortDescription.trim());
+        // Append file under both keys to match backend expectations
+        fd.append('image', formData.image);
+        // Some APIs expect image_url field even when uploading; include existing or empty
+        fd.append('image_url', typeof formData.image === 'string' ? formData.image : '');
+        // Send category IDs as repeated fields which many backends accept
+        const catIds = formData.serviceCategories.map(id => String(parseInt(id, 10)));
+        if (catIds.length > 0) {
+          catIds.forEach(cid => fd.append('category_ids[]', cid));
+        } else {
+          fd.append('category_ids[]', '');
+        }
+        // Debug: build a plain object from FormData for logging
+        const debugObj: Record<string, any> = {};
+        for (const [k, v] of fd.entries()) {
+          debugObj[k] = v instanceof File ? { name: v.name, size: v.size, type: v.type } : v;
+        }
+        console.log('Submitting FormData payload:', debugObj);
+        payload = fd;
+      } else {
+        // Use regular JSON payload when no new image file
+        payload = {
+          id: serviceId,
+          name: nameTrim,
+          category_ids: formData.serviceCategories.map(id => parseInt(id, 10)),
+          location: formData.location || undefined,
+          city: formData.city,
+          address: formData.address.trim(),
+          website: formData.serviceWebsite || undefined,
+          short_description: formData.shortDescription.trim(),
+          // Include image_url when there is an existing image reference
+          image_url: typeof formData.image === 'string' ? formData.image : undefined,
+        } as any;
+        console.log('Submitting JSON payload:', payload);
+      }
+
+      const updated = await updateService(payload as any);
+      if (onSuccess) onSuccess();
+      else navigate('/all-services');
+    } catch (error: any) {
+      console.error('Update failed,', error);
+      alert(`Failed to update service: ${error.response?.data?.message || error.message}`);
+    } finally {
+      setSubmitting(false);
+    }
+  };
     if (loading) return <ComponentCard title="Edit Service Form"><div className="text-center py-8">Loading service data...</div></ComponentCard>;
 
   return (
@@ -280,19 +357,37 @@ export default function EditServiceForm({ serviceId: propServiceId, onSuccess }:
           />
         </div>
         <div>
-          <Label htmlFor="fullDescription">Full Description (Optional)</Label>
-          <TextArea
-            rows={8}
-            value={formData.fullDescription}
-            onChange={(value) => {
-              setFormData((prev) => ({ ...prev, fullDescription: value }));
-              if (errors.fullDescription) {
-                setErrors((prev) => ({ ...prev, fullDescription: "" }));
-              }
-            }}
-            placeholder="Enter a full description"
-            className="w-80"
-          />
+          <Label htmlFor="image">Image</Label>
+          <div className="flex items-center space-x-4">
+            <label
+              htmlFor="image"
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md cursor-pointer hover:bg-gray-300 dark:bg-dark-800 dark:text-gray-300 dark:hover:bg-dark-700 transition-colors"
+            >
+              Choose File
+            </label>
+            <input
+              id="image"
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+
+            {formData.image instanceof File ? (
+              <span className="text-sm text-gray-600 dark:text-gray-400">{formData.image.name}</span>
+            ) : (typeof formData.image === 'string' && formData.image ? (
+              <span className="text-sm text-gray-600 dark:text-gray-400">{formData.image}</span>
+            ) : null)}
+
+            {imagePreview && (
+              <div className="w-28 h-28 overflow-hidden rounded-md border">
+                <img src={imagePreview} alt="Preview" className="object-cover w-full h-full" />
+              </div>
+            )}
+          </div>
+          {errors.image && (
+            <p className="mt-1.5 text-xs text-error-500">{errors.image}</p>
+          )}
         </div>
         <div className="flex justify-center">
           <button
