@@ -1,7 +1,7 @@
 import axios from "axios";
 
+// export const API_URL = 'http://localhost/NestiApp/public/api';
 export const API_URL = 'https://api.nesticommunity.com/api';
-//export const API_URL = 'http://localhost/NestiApp/public/api';
 export const api = axios.create({
     baseURL: API_URL,
     timeout: 10000,

@@ -21,11 +21,21 @@ export default function AllCategories() {
   const itemsPerPage = 10;
 
   const handleDelete = async (id: number) => {
+    const category = categories.find(c => c.id === id);
+    const categoryName = category?.name || `Category ${id}`;
+    
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${categoryName}"? This action cannot be undone.`
+    );
+    
+    if (!confirmed) return;
+    
     try {
       await deleteCategory(id);
       setCategories(categories.filter(c => c.id !== id));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting category:', error);
+      alert(`Failed to delete category: ${error.response?.data?.message || error.message}`);
     }
   };
 

@@ -24,11 +24,21 @@ export default function AllServices() {
 
 
   const handleDelete = async (id: number) => {
+    const service = services.find(s => s.id === id);
+    const serviceName = service?.name || `Service ${id}`;
+    
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${serviceName}"? This action cannot be undone.`
+    );
+    
+    if (!confirmed) return;
+    
     try {
       await deleteService(id);
       setServices(services.filter(s => s.id !== id));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting service:', error);
+      alert(`Failed to delete service: ${error.response?.data?.message || error.message}`);
     }
   };
 

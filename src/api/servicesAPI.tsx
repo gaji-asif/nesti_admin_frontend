@@ -75,8 +75,7 @@ export const updateService = async (
 ): Promise<Service> => {
   try {
     const { id, ...updateData } = serviceData;
-    const response = await api.put(`/services/${id}`, updateData);
-
+    const response = await api.patch(`/services/${id}`, updateData);
     console.log("Service updated successfully:", response.data);
     return response.data;
   } catch (error) {
@@ -104,6 +103,18 @@ export const getServices = async (): Promise<Service[]> => {
     return response.data;
   } catch (error) {
     console.error("Error fetching services:", error);
+    throw error;
+  }
+};
+
+// Function to get a single service by ID
+export const getServiceById = async (id: number): Promise<Service> => {
+  try {
+    const response = await api.get(`/services/${id}`);
+    console.log("Service fetched successfully:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching service:", error);
     throw error;
   }
 };
