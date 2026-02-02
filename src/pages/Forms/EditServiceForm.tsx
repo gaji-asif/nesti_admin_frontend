@@ -6,7 +6,7 @@ import MultiSelect from "../../components/form/MultiSelect";
 import TextArea from "../../components/form/input/TextArea";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
-import { updateService, UpdateServiceData, Service, getServices } from "../../api/servicesAPI";
+import { updateService, UpdateServiceData, getServiceById } from "../../api/servicesAPI";
 import { useCategories, formatCategoryOptions } from "../../hooks/useApiData";
 
 interface EditServiceFormProps {
@@ -65,15 +65,20 @@ export default function EditServiceForm({ serviceId: propServiceId, onSuccess }:
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const services = await getServices();
-        
-        const service = services.find((s: Service) => s.id === serviceId);
-        
-        if (service) {
+        // Fetch single service by ID (more efficient and robust)
+        const resp: any = await getServiceById(serviceId);
+
+        // Normalize various possible response wrappers
+        let service: any = resp;
+        if (!service) service = null;
+        else if (service.data && service.data.id) service = service.data;
+        else if (service.service && service.service.id) service = service.service;
+
+        if (service && service.id) {
           setFormData({
-            serviceName: service.name,
-            serviceCategories: service.category_ids 
-              ? service.category_ids.map(id => id.toString())
+            serviceName: service.name || "",
+            serviceCategories: service.category_ids
+              ? service.category_ids.map((cid: any) => String(cid))
               : [],
             rating: service.rating?.toString() || "",
             location: service.location || "",
@@ -84,7 +89,6 @@ export default function EditServiceForm({ serviceId: propServiceId, onSuccess }:
             fullDescription: service.description || "",
           });
         } else {
-          // Mock data for demonstration when API doesn't have the service
           console.warn(`Service with ID ${serviceId} not found, using mock data`);
           setFormData({
             serviceName: `Sample Service ${serviceId}`,

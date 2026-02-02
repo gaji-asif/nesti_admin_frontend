@@ -143,6 +143,12 @@ export default function AllServices() {
                 isHeader
                 className="px-5 py-3 font-bold text-gray-900 text-start text-theme-sm dark:text-white"
               >
+                Image
+              </TableCell>
+              <TableCell
+                isHeader
+                className="px-5 py-3 font-bold text-gray-900 text-start text-theme-sm dark:text-white"
+              >
                 Edit
               </TableCell>
               <TableCell
@@ -190,6 +196,13 @@ export default function AllServices() {
                   {service.discount ? service.discount : 'No discount'}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                  {service.image || service.image_url ? (
+                    <span className="text-green-600 dark:text-green-400">Yes</span>
+                  ) : (
+                    <span className="text-red-600 dark:text-red-400">No</span>
+                  )}
+                </TableCell>
+                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                   <Button size="sm" onClick={() => navigate(`/edit-service/${service.id}`)}><PencilIcon /></Button>
                 </TableCell>
                 <TableCell className="px-4 py-3 text-red-500 text-start text-theme-sm dark:text-red-400">
@@ -198,7 +211,7 @@ export default function AllServices() {
               </TableRow>
             )) : (
               <TableRow>
-                <td colSpan={10} className="px-4 py-8 text-center text-gray-500">
+                <td colSpan={11} className="px-4 py-8 text-center text-gray-500">
                   No services found
                 </td>
               </TableRow>
