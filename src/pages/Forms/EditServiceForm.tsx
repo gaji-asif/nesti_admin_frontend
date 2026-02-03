@@ -62,6 +62,8 @@ export default function EditServiceForm({ serviceId: propServiceId, onSuccess }:
     { label: "Oulu", value: "oulu" },
     { label: "Vantaa", value: "vantaa" },
     { label: "Lahti", value: "lahti" },
+    { label: "Espoo", value: "espoo" },
+    { label: "Raisio", value: "raisio" },
   ];
 
 
@@ -208,11 +210,12 @@ export default function EditServiceForm({ serviceId: propServiceId, onSuccess }:
         fd.append('image', formData.image);
         // Some APIs expect image_url field even when uploading; include existing or empty
         fd.append('image_url', typeof formData.image === 'string' ? formData.image : '');
-        // Send category IDs as repeated fields which many backends accept
-        const catIds = formData.serviceCategories.map(id => String(parseInt(id, 10)));
-        if (catIds.length > 0) {
-          catIds.forEach(cid => fd.append('category_ids[]', cid));
+        // Process category IDs into a clean numeric array and append using [] notation
+        const categoryIds = formData.serviceCategories.map(id => parseInt(id, 10)).filter(n => !Number.isNaN(n));
+        if (categoryIds.length > 0) {
+          categoryIds.forEach(category_id => fd.append('category_ids[]', String(category_id)));
         } else {
+          // ensure backend receives the field even if empty
           fd.append('category_ids[]', '');
         }
         // Debug: build a plain object from FormData for logging

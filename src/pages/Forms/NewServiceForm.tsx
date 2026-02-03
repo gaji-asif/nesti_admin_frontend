@@ -33,6 +33,7 @@ export default function NewServiceForm() {
     { label: "Vantaa", value: "vantaa" },
     { label: "Espoo", value: "espoo" },
     { label: "Lahti", value: "lahti" },
+    { label: "Raisio", value: "raisio" },
   ];
 
   const categoryOptions = formatCategoryOptions(categories);
