@@ -38,14 +38,49 @@ export const getAllCategories = async (): Promise<Category[]> => {
     throw error;
   }
 };
+// Interface for updating a category
+export interface UpdateCategoryData {
+  id: number;
+  name?: string;
+  description?: string;
+}
 
+// Function to update a category
+export const updateCategory = async (
+  categoryData: UpdateCategoryData
+): Promise<Category> => {
+  try {
+    const { id, ...updateData } = categoryData;
+    const response = await api.patch(`/categories/${id}`, updateData);
+    console.log("Category updated successfully:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating category:", error);
+    throw error;
+  }
+};
 // Function to delete a category
 export const deleteCategory = async (id: number): Promise<void> => {
   try {
-    await api.delete(`/delete-category/${id}`);
+    await api.delete(`/category/${id}`);
     console.log("Category deleted successfully");
   } catch (error) {
     console.error("Error deleting category:", error);
+    throw error;
+  }
+};
+
+// Function to update a category
+export const updateCategoryById = async (
+  id: number,
+  categoryData: CreateCategoryData
+): Promise<Category> => {
+  try {
+    const response = await api.patch(`/category/${id}`, categoryData);
+    console.log("Category updated successfully:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating category:", error);
     throw error;
   }
 };

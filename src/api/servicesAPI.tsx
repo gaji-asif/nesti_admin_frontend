@@ -71,12 +71,40 @@ export interface UpdateServiceData {
 
 // Function to update a service
 export const updateService = async (
-  serviceData: UpdateServiceData
+  serviceData: UpdateServiceData | FormData
 ): Promise<Service> => {
   try {
-    const { id, ...updateData } = serviceData;
-    const response = await api.put(`/services/${id}`, updateData);
+    // If FormData is provided, assume multipart upload
+    if (serviceData instanceof FormData) {
+      const id = serviceData.get('id') as unknown as string | undefined;
+      // If ID is included as field, use it; otherwise expect PATCH endpoint to accept FormData without id
+      const url = id ? `/services/${id}` : `/services`;
+      // Debug: log FormData entries (show file metadata only)
+      try {
+        const dbg: Record<string, any> = {};
+        for (const [k, v] of (serviceData as FormData).entries()) {
+          dbg[k] = v instanceof File ? { name: v.name, size: v.size, type: v.type } : v;
+        }
+        console.log('updateService - sending FormData to', url, dbg);
+      } catch (e) {
+        console.warn('updateService - failed to enumerate FormData for debug', e);
+      }
+      // Many servers (PHP/Laravel) don't parse multipart bodies for PATCH requests.
+      // Use POST with _method=PATCH when sending multipart FormData to ensure backend receives fields.
+      try {
+        if (!(serviceData as FormData).has('_method')) {
+          (serviceData as FormData).append('_method', 'PATCH');
+        }
+      } catch (e) {
+        // ignore
+      }
+      const response = await api.post(url, serviceData);
+      console.log("Service updated successfully (FormData):", response.data);
+      return response.data;
+    }
 
+    const { id, ...updateData } = serviceData as UpdateServiceData;
+    const response = await api.patch(`/services/${id}`, updateData);
     console.log("Service updated successfully:", response.data);
     return response.data;
   } catch (error) {
@@ -107,3 +135,15 @@ export const getServices = async (): Promise<Service[]> => {
     throw error;
   }
 };
+
+// Function to get a single service by ID
+// export const getServiceById = async (id: number): Promise<Service> => {
+//   try {
+//     const response = await api.get(`/services/${id}`);
+//     console.log("Service fetched successfully:", response.data);
+//     return response.data;
+//   } catch (error) {
+//     console.error("Error fetching service:", error);
+//     throw error;
+//   }
+// };

@@ -14,6 +14,7 @@ import AllServices from "./pages/Tables/AllServices";
 import AllCategories from "./pages/Tables/AllCategories";
 import NewServiceForm from "./pages/Forms/NewServiceForm";
 import EditServiceForm from "./pages/Forms/EditServiceForm";
+import EditCategoryForm from "./pages/Forms/EditCategoryForm";
 import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
@@ -39,6 +40,7 @@ export default function App() {
             <Route path="/new-service" element={<NewServiceForm />} />
             <Route path="/edit-service/:id" element={<EditServiceForm />} />
             <Route path="/new-category" element={<AddCategory />} />
+            <Route path="/edit-category/:id" element={<EditCategoryForm />} />
 
             {/* Tables */}
             <Route path="/all-services" element={<AllServices />} />
