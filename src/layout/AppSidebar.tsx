@@ -81,13 +81,21 @@ const othersItems: NavItem[] = [
   //   ],
   // },
   // {
-  // //   icon: <PlugInIcon />,
-  //   name: "Authentication",
+  //   icon: <PlugInIcon />,
+  //   name: "Plugins",
   //   subItems: [
-  //     { name: "Sign In", path: "/signin", pro: false },
-  //     { name: "Sign Up", path: "/signup", pro: false },
+  //     { name: "Plugin A", path: "/plugin-a", pro: false },
   //   ],
-  // // },
+  // },
+  {
+    name: "Authentication",
+    icon: <ListIcon />,
+    subItems: [
+      { name: "Log In", path: "/login", pro: false },
+      { name: "Log out", path: "/logout", pro: false },
+      // { name: "Sign Up", path: "/signup", pro: false },
+    ],
+  },
 ];
 
 const AppSidebar: React.FC = () => {
