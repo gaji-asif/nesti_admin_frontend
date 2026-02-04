@@ -23,7 +23,6 @@ import Home from "./pages/Dashboard/Home";
 import AddCategory from "./pages/Forms/NewCategoryForm";
 import LogIn from "./pages/AuthPages/LogIn";
 import SignUp from "./pages/AuthPages/SignUp";
-import { useAuth } from "./context/AuthContext";
 
 export default function App() {
   // Removed unused destructuring of isAuthenticated to fix the "declared but never read" warning.

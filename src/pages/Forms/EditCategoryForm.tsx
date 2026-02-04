@@ -32,10 +32,22 @@ export default function EditCategoryForm({ categoryId: propCategoryId, onSuccess
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const categories = await getAllCategories();
-        
-        const category = categories.find((c: Category) => c.id === categoryId);
-        
+        const data: any = await getAllCategories();
+
+        // Normalize different possible API response shapes
+        let categoriesArray: Category[] = [];
+        if (Array.isArray(data)) {
+          categoriesArray = data;
+        } else if (data && Array.isArray(data.categories)) {
+          categoriesArray = data.categories;
+        } else if (data && Array.isArray(data.data)) {
+          categoriesArray = data.data;
+        } else {
+          console.warn('Unexpected categories API response structure:', data);
+        }
+
+        const category = categoriesArray.find((c: Category) => c.id === categoryId);
+
         if (category) {
           setFormData({
             categoryName: category.name,

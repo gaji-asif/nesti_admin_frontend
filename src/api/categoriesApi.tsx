@@ -62,7 +62,7 @@ export const updateCategory = async (
 // Function to delete a category
 export const deleteCategory = async (id: number): Promise<void> => {
   try {
-    await api.delete(`/category/${id}`);
+    await api.delete(`/categories/${id}`);
     console.log("Category deleted successfully");
   } catch (error) {
     console.error("Error deleting category:", error);
@@ -76,7 +76,7 @@ export const updateCategoryById = async (
   categoryData: CreateCategoryData
 ): Promise<Category> => {
   try {
-    const response = await api.patch(`/category/${id}`, categoryData);
+    const response = await api.patch(`/categories/${id}`, categoryData);
     console.log("Category updated successfully:", response.data);
     return response.data;
   } catch (error) {
