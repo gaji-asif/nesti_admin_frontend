@@ -242,7 +242,6 @@ export default function EditServiceForm({ serviceId: propServiceId, onSuccess }:
         console.log('Submitting JSON payload:', payload);
       }
 
-      const updated = await updateService(payload as any);
       if (onSuccess) onSuccess();
       else navigate('/all-services');
     } catch (error: any) {
