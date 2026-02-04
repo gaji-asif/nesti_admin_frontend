@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { loginUser, LoginCredentials } from "../api/authenticationApi";
 import { api } from "../api/config";
 
@@ -20,7 +20,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<any | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading] = useState<boolean>(true);
 
   const login = async (email: string, password: string) => {
     const res = await loginUser({ email, password } as LoginCredentials);
