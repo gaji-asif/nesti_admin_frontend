@@ -13,11 +13,13 @@ export const api = axios.create({
 // Add request interceptor to automatically include bearer token
 api.interceptors.request.use(
     (config) => {
-        // Use environment variable for the token (secure and configurable)
-        const token = import.meta.env.VITE_API_TOKEN;
+        // Prefer token stored in localStorage (user login) otherwise fall back to env token
+        const storedToken = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
+        const envToken = import.meta.env.VITE_API_TOKEN;
+        const token = storedToken || envToken;
 
         if (token) {
-            //add authorization header to the request
+            config.headers = config.headers || {};
             config.headers.Authorization = `Bearer ${token}`;
         }
         return config;

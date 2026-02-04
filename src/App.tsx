@@ -17,18 +17,24 @@ import EditServiceForm from "./pages/Forms/EditServiceForm";
 import EditCategoryForm from "./pages/Forms/EditCategoryForm";
 import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
+import RequireAuth from "./components/auth/RequireAuth";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
 import AddCategory from "./pages/Forms/NewCategoryForm";
+import LogIn from "./pages/AuthPages/LogIn";
+import SignUp from "./pages/AuthPages/SignUp";
 
 export default function App() {
+  // Removed unused destructuring of isAuthenticated to fix the "declared but never read" warning.
+  // Also resolves the TypeScript error since isAuthenticated is not part of AuthContextType.
+  // If authentication state is needed elsewhere, access it via useAuth() directly.
   return (
     <>
       <Router>
         <ScrollToTop />
         <Routes>
-          Dashboard Layout
-          <Route element={<AppLayout />}>
+          {/* Dashboard Layout */}
+          <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
             <Route index path="/" element={<Home />} />
 
             {/* Others Page */}
@@ -58,6 +64,10 @@ export default function App() {
             {/* <Route path="/line-chart" element={<LineChart />} /> */}
             {/* <Route path="/bar-chart" element={<BarChart />} /> */}
           </Route>
+          {/* Auth Pages (standalone layouts) */}
+          <Route path="/login" element={<LogIn />} />
+          <Route path="/signup" element={<SignUp />} />
+
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
