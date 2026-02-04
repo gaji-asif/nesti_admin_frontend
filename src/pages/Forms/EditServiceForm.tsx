@@ -242,6 +242,15 @@ export default function EditServiceForm({ serviceId: propServiceId, onSuccess }:
         console.log('Submitting JSON payload:', payload);
       }
 
+      // Send update to API
+      try {
+        const updated = await updateService(payload as any);
+        console.log('Service update response:', updated);
+      } catch (err) {
+        console.error('updateService call failed:', err);
+        throw err;
+      }
+
       if (onSuccess) onSuccess();
       else navigate('/all-services');
     } catch (error: any) {
