@@ -65,13 +65,13 @@ export default function LogInForm() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between mb-4">
+        {/* <div className="flex items-center justify-between mb-4">
           <label className="flex items-center gap-2">
             <Checkbox checked={remember} onChange={setRemember} />
             <span className="text-sm">Remember me</span>
           </label>
           <Link to="/reset-password" className="text-sm text-brand-500">Forgot?</Link>
-        </div>
+        </div> */}
 
         <Button className="w-full" size="sm" disabled={loading}>
           {loading ? "Signing in..." : "Sign in"}
