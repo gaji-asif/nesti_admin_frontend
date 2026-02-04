@@ -1,11 +1,10 @@
 import React, { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import { useAuth } from "../../context/AuthContext";
 
 import { EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
-import Checkbox from "../form/input/Checkbox";
 import Button from "../ui/button/Button";
 // removed direct API import; authentication handled by AuthContext
 
@@ -16,7 +15,7 @@ export default function LogInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [remember, setRemember] = useState(false);
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
