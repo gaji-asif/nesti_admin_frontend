@@ -23,6 +23,7 @@ import Home from "./pages/Dashboard/Home";
 import AddCategory from "./pages/Forms/NewCategoryForm";
 import LogIn from "./pages/AuthPages/LogIn";
 import SignUp from "./pages/AuthPages/SignUp";
+import Logout from "./pages/AuthPages/Logout";
 
 export default function App() {
   // Removed unused destructuring of isAuthenticated to fix the "declared but never read" warning.
@@ -67,6 +68,7 @@ export default function App() {
           {/* Auth Pages (standalone layouts) */}
           <Route path="/login" element={<LogIn />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/logout" element={<Logout />} />
 
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />

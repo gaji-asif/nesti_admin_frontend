@@ -37,6 +37,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = () => {
     localStorage.removeItem("auth_token");
+    // Remove auth header for future requests
+    try {
+      if (api && api.defaults && api.defaults.headers) {
+        // Some axios versions use common header storage
+        if (api.defaults.headers.Authorization) delete api.defaults.headers.Authorization;
+        if (api.defaults.headers.common && api.defaults.headers.common.Authorization) delete api.defaults.headers.common.Authorization;
+      }
+    } catch (e) {
+      // ignore
+    }
     setUser(null);
   };
 
