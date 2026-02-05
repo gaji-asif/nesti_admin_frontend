@@ -46,7 +46,10 @@ export default function LogInForm() {
     <div className="min-h-screen flex items-center justify-center">
       <div className="w-full max-w-sm">
         <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-sm">
-        <h2 className="text-2xl font-semibold mb-4">Log In</h2>
+        <div className="flex justify-center mb-4">
+          <img src="/images/logo/nesti-logo.png" alt="Nesti" width={180} height={36} />
+        </div>
+        <h2 className="text-2xl font-semibold mb-4 text-center">Log In</h2>
         {error && <div className="mb-3 text-sm text-error-500">{error}</div>}
 
         <div className="mb-3">
