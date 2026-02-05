@@ -18,48 +18,35 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  // {
-  //   icon: <GridIcon />,
-  //   name: "Dashboard",
-  //   subItems: [{ name: "Ecommerce", path: "/", pro: false }],
-  // },
-  // {
-  //   icon: <CalenderIcon />,
-  //   name: "Calendar",
-  //   path: "/calendar",
-  // },
-  //   {
-  //     icon: <UserCircleIcon />,
-  //     name: "User Profile",
-  //     path: "/profile",
-  //   },
   {
-    name: "Forms",
+    name: "Dashboard",
     icon: <ListIcon />,
+    subItems: [{ name: "Home", path: "/", pro: false }],
+  },
+  {
+    name: "Services",
+    icon: <TableIcon />,
     subItems: [
-      { name: "New Service", path: "/new-service", pro: false },
-      { name: "New Category", path: "/new-category", pro: false },
+      { name: "Add Service", path: "/new-service", pro: false },
+      { name: "All Services", path: "/all-services", pro: false },
     ],
   },
-    {
-      name: "All services",
-      icon: <TableIcon />,
-      subItems: [
-        { name: "All services", path: "/all-services", pro: false },
-        { name: "All categories", path: "/all-categories", pro: false },
-      ],
-    },
-  //   {
-  //     name: "Pages",
-  //     icon: <PageIcon />,
-  //     subItems: [
-  //       { name: "Blank Page", path: "/blank", pro: false },
-  //       { name: "404 Error", path: "/error-404", pro: false },
-  //     ],
-  //   },
+  {
+    name: "Look up Data",
+    icon: <ListIcon />,
+    subItems: [
+      { name: "Categories", path: "/all-categories", pro: false },
+    ],
+  },
+  {
+    name: "Users",
+    icon: <TableIcon />,
+    subItems: [
+      { name: "All Users", path: "/all-users", pro: false },
+    ],
+  },
 ];
 
-const othersItems: NavItem[] = [
   // {
   //   icon: <PieChartIcon />,
   //   name: "Charts",
@@ -87,13 +74,12 @@ const othersItems: NavItem[] = [
   //     { name: "Plugin A", path: "/plugin-a", pro: false },
   //   ],
   // },
+const othersItems: NavItem[] = [
   {
-    name: "Authentication",
+    name: "Settings",
     icon: <ListIcon />,
     subItems: [
-      { name: "Log In", path: "/login", pro: false },
-      { name: "Log out", path: "/logout", pro: false },
-      // { name: "Sign Up", path: "/signup", pro: false },
+      { name: "Logout", path: "/logout", pro: false },
     ],
   },
 ];
