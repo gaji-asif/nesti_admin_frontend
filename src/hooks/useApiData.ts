@@ -3,6 +3,7 @@ import { getServices, Service } from '../api/servicesAPI';
 import { parseId } from '../utils/parseId';
 import { normalizeServiceResponse } from '../utils/apiNormalize';
 import { getAllCategories, Category } from '../api/categoriesApi';
+import { getUsers, User } from '../api/usersApi';
 
 // Custom hook for fetching categories
 export const useCategories = () => {
@@ -166,4 +167,48 @@ export const useService = (serviceId?: number | string) => {
     }, [serviceId]);
 
     return { service, loading, error };
+};
+
+// Custom hook for fetching users
+export const useUsers = () => {
+    const [users, setUsers] = useState<User[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchUsers = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const data: any = await getUsers();
+            console.log('Users API response:', data);
+
+            // Handle different response structures
+            let usersArray: User[] = [];
+            if (Array.isArray(data)) {
+                usersArray = data;
+            } else if (data && Array.isArray(data.data)) {
+                usersArray = data.data;
+            } else if (data && Array.isArray(data.users)) {
+                usersArray = data.users;
+            } else {
+                console.warn('Unexpected users API response structure:', data);
+            }
+
+            setUsers(usersArray);
+        } catch (error) {
+            console.error('Error fetching users:', error);
+            setError('Failed to fetch users');
+            setUsers([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchUsers();
+    }, []);
+
+    // Return refetch function for manual refresh
+    return { users, loading, error, refetch: fetchUsers, setUsers };
 };

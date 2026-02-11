@@ -12,6 +12,7 @@ import Buttons from "./pages/UiElements/Buttons";
 import Calendar from "./pages/Calendar";
 import AllServices from "./pages/Tables/AllServices";
 import AllCategories from "./pages/Tables/AllCategories";
+import ServiceAnalytics from "./pages/Tables/ServiceAnalytics";
 import NewServiceForm from "./pages/Forms/NewServiceForm";
 import EditServiceForm from "./pages/Forms/EditServiceForm";
 import EditCategoryForm from "./pages/Forms/EditCategoryForm";
@@ -24,6 +25,7 @@ import AddCategory from "./pages/Forms/NewCategoryForm";
 import LogIn from "./pages/AuthPages/LogIn";
 import SignUp from "./pages/AuthPages/SignUp";
 import Logout from "./pages/AuthPages/Logout";
+import AllUsers from "./pages/Tables/AllUsers";
 
 export default function App() {
   // Removed unused destructuring of isAuthenticated to fix the "declared but never read" warning.
@@ -52,6 +54,8 @@ export default function App() {
             {/* Tables */}
             <Route path="/all-services" element={<AllServices />} />
             <Route path="/all-categories" element={<AllCategories />} />
+            <Route path="/all-users" element={<AllUsers />} />
+            <Route path="/service-analytics" element={<ServiceAnalytics />} />
 
             {/* Ui Elements */}
             <Route path="/alerts" element={<Alerts />} />
