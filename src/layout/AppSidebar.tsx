@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
 
-// Assume these icons are imported from an icon library
 import {
   ChevronDownIcon,
   HorizontaLDots,
@@ -43,6 +42,13 @@ const navItems: NavItem[] = [
     icon: <TableIcon />,
     subItems: [
       { name: "All Users", path: "/all-users", pro: false },
+    ],
+  },
+  {
+    name: "Report",
+    icon: <TableIcon />,
+    subItems: [
+      { name: "Service Clicks", path: "/service-analytics", pro: false },
     ],
   },
 ];
