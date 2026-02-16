@@ -4,6 +4,7 @@ import { parseId } from '../utils/parseId';
 import { normalizeServiceResponse } from '../utils/apiNormalize';
 import { getAllCategories, Category } from '../api/categoriesApi';
 import { getUsers, User } from '../api/usersApi';
+import { getServiceClickSummary, ServiceClickSummary } from '../api/analyticsApi';
 
 // Custom hook for fetching categories
 export const useCategories = () => {
@@ -211,4 +212,36 @@ export const useUsers = () => {
 
     // Return refetch function for manual refresh
     return { users, loading, error, refetch: fetchUsers, setUsers };
+};
+
+// Custom hook for fetching service click summary analytics
+export const useServiceClickSummary = () => {
+    const [clickSummary, setClickSummary] = useState<ServiceClickSummary[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchClickSummary = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const data: ServiceClickSummary[] = await getServiceClickSummary();
+            console.log('Service click summary API response:', data);
+
+            setClickSummary(data);
+        } catch (error) {
+            console.error('Error fetching service click summary:', error);
+            setError('Failed to fetch service click summary');
+            setClickSummary([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchClickSummary();
+    }, []);
+
+    // Return refetch function for manual refresh
+    return { clickSummary, loading, error, refetch: fetchClickSummary };
 };

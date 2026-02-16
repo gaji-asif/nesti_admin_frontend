@@ -6,34 +6,34 @@ import {
   TableRow,
 } from "../../ui/table";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useServices } from "../../../hooks/useApiData";
+import { useServiceClickSummary } from "../../../hooks/useApiData";
 
 interface ReportData {
-  id: number;
   serviceName: string;
-  discountCodeClicks: number;
-  visitWebsiteClicks: number;
+  advantageClicks: number;
+  websiteVisitClicks: number;
 }
 
 export default function ServiceAnalyticsTable() {
-  const { services, loading, error } = useServices();
+  const { services, loading: servicesLoading, error: servicesError } = useServices();
+  const { clickSummary, loading: analyticsLoading, error: analyticsError } = useServiceClickSummary();
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Create reports data from services with mock click counts
-  const reportsData: ReportData[] = services.map(service => {
-    // Generate consistent mock data per service
-    const baseSeed = service.id * 37;
-    const discountClicks = Math.floor((baseSeed % 150) + Math.random() * 50) + 20;
-    const visitClicks = Math.floor((baseSeed % 200) + Math.random() * 80) + 30;
+  // Merge services with analytics data
+  const reportsData: ReportData[] = useMemo(() => {
+    return services.map(service => {
+      // Find matching analytics data by service name
+      const analytics = clickSummary.find(item => item.service_name === service.name);
 
-    return {
-      id: service.id,
-      serviceName: service.name,
-      discountCodeClicks: discountClicks,
-      visitWebsiteClicks: visitClicks,
-    };
-  });
+      return {
+        serviceName: service.name,
+        advantageClicks: analytics?.advantage_clicks || 0,
+        websiteVisitClicks: analytics?.website_visit_clicks || 0,
+      };
+    });
+  }, [services, clickSummary]);
 
   const filteredReports = reportsData.filter(report => {
     if (!searchTerm) return true;
@@ -41,10 +41,13 @@ export default function ServiceAnalyticsTable() {
     return report.serviceName.toLowerCase().includes(searchLower);
   });
 
+  const loading = servicesLoading || analyticsLoading;
+  const error = servicesError || analyticsError;
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="text-gray-500 dark:text-gray-400">Loading services...</div>
+        <div className="text-gray-500 dark:text-gray-400">Loading services and analytics data...</div>
       </div>
     );
   }
@@ -52,7 +55,7 @@ export default function ServiceAnalyticsTable() {
   if (error) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="text-red-500 dark:text-red-400">Error loading services: {error}</div>
+        <div className="text-red-500 dark:text-red-400">Error loading data: {error}</div>
       </div>
     );
   }
@@ -80,7 +83,7 @@ export default function ServiceAnalyticsTable() {
             />
           </div>
           <div className="text-sm text-gray-500 dark:text-gray-400">
-            {filteredReports.length} of {reportsData.length} services
+            {filteredReports.length} of {services.length} services
           </div>
         </div>
       </div>
@@ -112,16 +115,16 @@ export default function ServiceAnalyticsTable() {
 
           {/* Table Body */}
           <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-            {filteredReports.map((report) => (
-              <TableRow key={report.id}>
+            {filteredReports.map((report, index) => (
+              <TableRow key={`${report.serviceName}-${index}`}>
                 <TableCell className="px-5 py-4 sm:px-6 text-start text-theme-sm dark:text-white">
                   {report.serviceName}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  {report.discountCodeClicks}
+                  {report.advantageClicks}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  {report.visitWebsiteClicks}
+                  {report.websiteVisitClicks}
                 </TableCell>
               </TableRow>
             ))}
