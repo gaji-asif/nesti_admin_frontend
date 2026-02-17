@@ -7,9 +7,13 @@ export interface ServiceClickSummary {
 }
 
 // Function to get service click summary analytics
-export const getServiceClickSummary = async (): Promise<ServiceClickSummary[]> => {
+export const getServiceClickSummary = async (serviceId?: number | string): Promise<ServiceClickSummary[]> => {
   try {
-    const response = await api.get("/analytics/service-click-summary");
+    const url = serviceId 
+      ? `/analytics/service-click-summary?service_id=${serviceId}`
+      : "/analytics/service-click-summary";
+    
+    const response = await api.get(url);
 
     console.log("Service click summary fetched successfully:", response.data);
 
