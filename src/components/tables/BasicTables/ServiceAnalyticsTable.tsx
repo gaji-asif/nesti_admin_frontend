@@ -121,10 +121,10 @@ export default function ServiceAnalyticsTable() {
                   {report.serviceName}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  {report.advantageClicks}
+                  {report.advantageClicks.toLocaleString()}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  {report.websiteVisitClicks}
+                  {report.websiteVisitClicks.toLocaleString()}
                 </TableCell>
               </TableRow>
             ))}
