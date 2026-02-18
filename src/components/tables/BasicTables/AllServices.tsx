@@ -10,7 +10,7 @@ import Button from "../../ui/button/Button";
 import { PencilIcon, TrashBinIcon } from "../../../icons";
 import { useNavigate } from "react-router";
 import { useState, useEffect } from "react";
-import { deleteService } from "../../../api/servicesAPI";
+import { deleteService } from "../../../api/servicesApi";
 import { useServices, useCategories, getCategoryNames } from "../../../hooks/useApiData";
 
 export default function AllServices() {

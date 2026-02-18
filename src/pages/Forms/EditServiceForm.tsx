@@ -6,7 +6,7 @@ import MultiSelect from "../../components/form/MultiSelect";
 import TextArea from "../../components/form/input/TextArea";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
-import { updateService, UpdateServiceData, getServices } from "../../api/servicesAPI";
+import { updateService, UpdateServiceData, getServices } from "../../api/servicesApi";
 import { useCategories, formatCategoryOptions, useService} from "../../hooks/useApiData";
 import { normalizeListResponse } from "../../utils/apiNormalize";
 
