@@ -10,8 +10,8 @@ import Button from "../../ui/button/Button";
 import { PencilIcon, TrashBinIcon } from "../../../icons";
 import { useNavigate } from "react-router";
 import { useState, useEffect } from "react";
-import { deleteService } from "../../../api/servicesApi";
 import { useServices, useCategories, getCategoryNames } from "../../../hooks/useApiData";
+import { deleteService } from "../../../api/servicesAPI";
 
 export default function AllServices() {
   const navigate = useNavigate();
@@ -235,3 +235,4 @@ export default function AllServices() {
     </div>
   );
 }
+

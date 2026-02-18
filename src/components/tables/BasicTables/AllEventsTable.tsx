@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+// navigate removed until edit-event is implemented
 import {
   Table,
   TableBody,
@@ -12,7 +12,6 @@ import { TrashBinIcon, EyeIcon } from "../../../icons";
 import { getAllEvents, deleteEvent, Event } from "../../../api/eventsApi";
 
 export default function AllEventsTable() {
-  const navigate = useNavigate();
   const [events, setEvents] = useState<Event[] | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [loadedCount, setLoadedCount] = useState(10);
@@ -44,6 +43,7 @@ export default function AllEventsTable() {
       alert(`Failed to delete event: ${error.response?.data?.message || error.message}`);
     }
   };
+
 
   const filtered = (events || []).filter((e) => {
     if (!searchTerm) return true;
@@ -103,12 +103,9 @@ export default function AllEventsTable() {
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 min-w-[200px]">{ev.start_time ? new Date(ev.start_time).toLocaleString() : ev.event_date_time || '—'}</TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{ev.location || '—'}</TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{ev.creator?.name || '—'}</TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 flex gap-2">
-                    {ev.details_url && typeof ev.details_url === 'string' ? (
-                      <Button size="sm" onClick={() => window.open(ev.details_url?? '#', "_blank") }><EyeIcon /></Button>
-                    ) : (
-                      <Button size="sm" onClick={() => { /* no-op: could navigate to edit */ }}><EyeIcon /></Button>
-                    )}
+                    <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 space-x-2">
+                    
+                    {/* <Button size="sm" onClick={() => handleEdit(ev.id)}>Edit</Button> */}
                     <Button size="sm" className="bg-red-500 hover:bg-red-600 text-white" onClick={() => handleDelete(ev.id)}><TrashBinIcon /></Button>
                   </TableCell>
                 </TableRow>

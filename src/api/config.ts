@@ -1,13 +1,14 @@
 import axios from "axios";
 
-// export const API_URL = 'http://localhost/NestiApp/public/api';
-export const API_URL = 'https://api.nesticommunity.com/api';
+// Use a dev-relative URL so Vite dev server proxy handles CORS in development.
+// In production use the real API host.
+export const API_URL = import.meta.env.DEV ? '/api' : 'https://api.nesticommunity.com/api';
 export const api = axios.create({
     baseURL: API_URL,
     timeout: 10000,
     // Do not set a global Content-Type so axios can choose per-request headers
     headers: {},
-    //withCredentials: true, // important for Sanctum
+    //withCredentials: true, // important for Sanctum if backend requires cookies
 });
 
 // Add request interceptor to automatically include bearer token
