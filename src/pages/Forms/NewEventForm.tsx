@@ -42,7 +42,7 @@ export default function NewEvent() {
     setFormData((prev) => ({ ...prev, [field]: value } as any));
   };
 
-  const handleDateChange = (selectedDates: Date[], dateStr: string) => {
+  const handleDateChange = (_selectedDates: Date[], dateStr: string) => {
     setFormData((prev) => ({ ...prev, date: dateStr }));
   };
 

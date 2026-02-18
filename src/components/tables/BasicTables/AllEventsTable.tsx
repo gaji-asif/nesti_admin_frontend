@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "../../ui/table";
 import Button from "../../ui/button/Button";
-import { TrashBinIcon, EyeIcon } from "../../../icons";
+import { TrashBinIcon } from "../../../icons";
 import { getAllEvents, deleteEvent, Event } from "../../../api/eventsApi";
 
 export default function AllEventsTable() {
