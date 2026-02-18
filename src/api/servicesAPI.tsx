@@ -89,7 +89,6 @@ export const updateService = async (
       } catch (e) {
         console.warn('updateService - failed to enumerate FormData for debug', e);
       }
-      // Many servers (PHP/Laravel) don't parse multipart bodies for PATCH requests.
       // Use POST with _method=PATCH when sending multipart FormData to ensure backend receives fields.
       try {
         if (!(serviceData as FormData).has('_method')) {
@@ -135,6 +134,7 @@ export const getServices = async (): Promise<Service[]> => {
     throw error;
   }
 };
+
 
 // Function to get a single service by ID
 // export const getServiceById = async (id: number): Promise<Service> => {

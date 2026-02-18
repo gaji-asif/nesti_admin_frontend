@@ -1,3 +1,4 @@
+
 import {
   Table,
   TableBody,
@@ -6,7 +7,9 @@ import {
   TableRow,
 } from "../../ui/table";
 
-import { useState, useMemo } from "react";
+import Button from "../../ui/button/Button";
+
+import { useState, useMemo, useEffect } from "react";
 import { useServices } from "../../../hooks/useApiData";
 import { useServiceClickSummary } from "../../../hooks/useApiData";
 
@@ -20,6 +23,13 @@ export default function ServiceAnalyticsTable() {
   const { services, loading: servicesLoading, error: servicesError } = useServices();
   const { clickSummary, loading: analyticsLoading, error: analyticsError } = useServiceClickSummary();
   const [searchTerm, setSearchTerm] = useState('');
+  const [loadedCount, setLoadedCount] = useState(10);
+  const itemsPerPage = 20;
+
+  // Reset loaded count when search changes
+  useEffect(() => {
+    setLoadedCount(10);
+  }, [searchTerm]);
 
   // Merge services with analytics data
   const reportsData: ReportData[] = useMemo(() => {
@@ -40,6 +50,9 @@ export default function ServiceAnalyticsTable() {
     const searchLower = searchTerm.toLowerCase();
     return report.serviceName.toLowerCase().includes(searchLower);
   });
+
+  const displayedReports = filteredReports.slice(0, loadedCount);
+  const hasMore = loadedCount < filteredReports.length;
 
   const loading = servicesLoading || analyticsLoading;
   const error = servicesError || analyticsError;
@@ -83,7 +96,7 @@ export default function ServiceAnalyticsTable() {
             />
           </div>
           <div className="text-sm text-gray-500 dark:text-gray-400">
-            {filteredReports.length} of {services.length} services
+            {displayedReports.length} of {filteredReports.length} services
           </div>
         </div>
       </div>
@@ -115,7 +128,7 @@ export default function ServiceAnalyticsTable() {
 
           {/* Table Body */}
           <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-            {filteredReports.map((report, index) => (
+            {Array.isArray(displayedReports) && displayedReports.length > 0 ? displayedReports.map((report, index) => (
               <TableRow key={`${report.serviceName}-${index}`}>
                 <TableCell className="px-5 py-4 sm:px-6 text-start text-theme-sm dark:text-white">
                   {report.serviceName}
@@ -127,10 +140,30 @@ export default function ServiceAnalyticsTable() {
                   {report.websiteVisitClicks.toLocaleString()}
                 </TableCell>
               </TableRow>
-            ))}
+            )) : (
+              <TableRow>
+                <td colSpan={3} className="px-4 py-8 text-center text-gray-500">
+                  No services found
+                </td>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>
+
+      {/* Load More */}
+      {hasMore && (
+        <div className="flex justify-center px-4 py-3 bg-white border-t border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+          <Button
+            size="sm"
+            onClick={() => setLoadedCount(prev => prev + itemsPerPage)}
+            className="px-4 py-1 bg-blue-500 text-white hover:bg-blue-600"
+          >
+            Load More
+          </Button>
+        </div>
+      )}
+
     </div>
   );
 }

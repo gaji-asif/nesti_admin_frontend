@@ -5,7 +5,7 @@ import Select from "../../components/form/Select";
 import MultiSelect from "../../components/form/MultiSelect";
 import TextArea from "../../components/form/input/TextArea";
 import { useState } from "react";
-import { addService } from "../../api/servicesAPI";
+import { addService } from "../../api/servicesApi";
 import { useCategories, formatCategoryOptions } from "../../hooks/useApiData";
 
 export default function NewServiceForm() {

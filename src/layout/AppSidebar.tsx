@@ -28,13 +28,16 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "Add Service", path: "/new-service", pro: false },
       { name: "All Services", path: "/all-services", pro: false },
+      { name: "Categories", path: "/all-categories", pro: false },
+      { name: "Add Category", path: "/new-category", pro: false },
     ],
   },
   {
-    name: "Look up Data",
+    name: "Events",
     icon: <ListIcon />,
     subItems: [
-      { name: "Categories", path: "/all-categories", pro: false },
+      { name: "All Events", path: "/all-events", pro: false },
+      { name: "Add Event", path: "/new-event", pro: false },
     ],
   },
   {
