@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getServices, Service, deleteService, updateService } from '../api/servicesAPI';
+import { getServices, Service } from '../api/servicesAPI';
 import { parseId } from '../utils/parseId';
 import { normalizeServiceResponse } from '../utils/apiNormalize';
 import { getAllCategories, Category } from '../api/categoriesApi';
