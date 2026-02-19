@@ -8,7 +8,7 @@ export default function ServiceAnalytics() {
     <>
       <PageMeta
         title="Service Analytics Dashboard | TailAdmin - Next.js Admin Dashboard Template"
-        description="This is Service Analytics Dashboard page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+        description="Service analytics and metrics for the Nesti admin dashboard"
       />
       <PageBreadcrumb pageTitle="Service Analytics" />
       <div className="space-y-6">
