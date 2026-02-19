@@ -1,4 +1,5 @@
 import { api } from './config'
+import { normalizeListResponse, normalizeEventItem } from '../utils/apiNormalize'
 
 export interface EventItem {
   id: string;
@@ -38,34 +39,10 @@ export const getEvents = async (): Promise<EventItem[]> => {
   try {
     const response = await api.get('/all-events');
     
-    // Extract the array from the API response and normalize
-    const eventsArray = response.data?.data ?? [];
-    const normalized: EventItem[] = eventsArray.map((e: any) => ({
-      id: e.id.toString(),
-      title: e.name ?? "—",
-      description: e.description ?? "",
-      short_description: e.short_description ?? "",
-      date: e.start_time?.slice(0, 10) ?? "",
-      time:
-        e.start_time && e.end_time
-          ? `${e.start_time.slice(11, 16)}–${e.end_time.slice(11, 16)}`
-          : e.start_time?.slice(11, 16) ?? "",
-      city: e.location_extra_info ?? "Helsinki",
-      place: e.location ?? "",
-      ageGroup:
-        e.audience_min_age || e.audience_max_age
-          ? `${e.audience_min_age ?? ""}–${e.audience_max_age ?? ""}`
-          : "Kaikille",
-      attendeesCount: 0,
-      organizer: e.organizer ?? "Tuntematon",
-      createdByUserId: e.created_by_user_id ?? "",
-      createdAt: e.created_at ?? "",
-      notice: e.notice ?? "",
-      recurring: e.recurring ?? "",
-      publisher_name: e.publisher_name ?? "",
-      price: e.price ?? "Maksuton",
-    }));
-    
+    // Extract list from possible response shapes and map to EventItem
+    const eventsArray = normalizeListResponse<any>(response.data);
+    const normalized: EventItem[] = eventsArray.map((e: any) => normalizeEventItem(e)).filter(Boolean) as EventItem[];
+
     return normalized;
   } catch (error) {
     console.error("Error fetching events:", error);

@@ -26,3 +26,33 @@ export function normalizeListResponse<T = any>(data: any): T[] {
   if (data.services && Array.isArray(data.services)) return data.services as T[];
   return [];
 }
+
+// Event-specific normalizer: maps backend event object to frontend EventItem shape
+export function normalizeEventItem(e: any) {
+  if (!e) return null;
+  return {
+    id: e.id?.toString() ?? "",
+    title: e.name ?? "—",
+    description: e.description ?? "",
+    short_description: e.short_description ?? "",
+    date: e.start_time?.slice(0, 10) ?? "",
+    time: e.start_time && e.end_time
+      ? `${e.start_time.slice(11,16)}–${e.end_time.slice(11,16)}`
+      : e.start_time?.slice(11,16) ?? "",
+    city: e.location_extra_info ?? "Helsinki",
+    place: e.location ?? "",
+    ageGroup: e.audience_min_age || e.audience_max_age
+      ? `${e.audience_min_age ?? ""}–${e.audience_max_age ?? ""}`
+      : "Kaikille",
+    attendeesCount: 0,
+    organizer: e.organizer ?? "Tuntematon",
+    createdByUserId: e.created_by_user_id ?? "",
+    createdAt: e.created_at ?? "",
+    lat: e.lat ?? undefined,
+    lng: e.lng ?? undefined,
+    notice: e.notice ?? "",
+    recurring: e.recurring ?? "",
+    publisher_name: e.publisher_name ?? "",
+    price: e.price ?? "Maksuton",
+  };
+}
