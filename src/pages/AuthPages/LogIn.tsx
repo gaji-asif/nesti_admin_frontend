@@ -6,8 +6,8 @@ export default function LogIn() {
   return (
     <>
       <PageMeta
-        title="React.js LogIn Dashboard | TailAdmin - Next.js Admin Dashboard Template"
-        description="This is React.js LogIn Tables Dashboard page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+        title="Nesti — Log In"
+        description="Log in to the Nesti admin dashboard"
       />
       <AuthLayout>
         <LogInForm />

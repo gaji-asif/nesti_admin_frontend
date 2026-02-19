@@ -3,32 +3,34 @@ import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
 import TextArea from "../../components/form/input/TextArea";
 import { useState } from "react";
-import { addEvent } from "../../api/eventsApi";
+import { createEvent } from "../../api/eventsApi";
 import DatePicker from "../../components/form/date-picker";
 import TimeRanges from "../../components/form/time-ranges";
 
 interface EventForm {
-  name: string;
+  title: string;
   short_description: string;
   description: string;
   date: string; // yyyy-mm-dd
   start_time: string; // HH:MM
   end_time: string; // HH:MM
-  location: string;
-  location_extra_info: string;
+  place: string;
+  city: string;
+  audience: string;
   is_active: boolean;
 }
 
 export default function NewEvent() {
   const [formData, setFormData] = useState<EventForm>({
-    name: "",
+    title: "",
     short_description: "",
     description: "",
     date: "",
     start_time: "",
     end_time: "",
-    location: "",
-    location_extra_info: "",
+    place: "",
+    city: "Helsinki",
+    audience: "Kaikille",
     is_active: true,
   });
 
@@ -52,7 +54,7 @@ export default function NewEvent() {
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
-    if (!formData.name.trim()) newErrors.name = "Event name is required";
+    if (!formData.title.trim()) newErrors.title = "Event title is required";
     if (!formData.date) newErrors.date = "Event date is required";
     if (!formData.start_time) newErrors.start_time = "Start time is required";
     // If end_time present, ensure it's after start_time
@@ -77,66 +79,34 @@ export default function NewEvent() {
     if (!validate()) return;
     setSubmitting(true);
     try {
-      // Build payload. Use FormData to allow future file uploads.
-      const payload = new FormData();
-      payload.append("name", formData.name);
-      if (formData.short_description) payload.append("short_description", formData.short_description);
-      if (formData.description) payload.append("description", formData.description);
-      if (formData.location) payload.append("location", formData.location);
-      if (formData.location_extra_info) payload.append("location_extra_info", formData.location_extra_info);
+      // Format time as HH:MM-HH:MM or just HH:MM
+      const time = formData.end_time 
+        ? `${formData.start_time}-${formData.end_time}`
+        : formData.start_time;
 
-      // Combine date and time to ISO timestamps when possible
-      if (formData.date && formData.start_time) {
-        const [y, m, d] = formData.date.split("-").map((v) => parseInt(v, 10));
-        const [sh, sm] = formData.start_time.split(":").map((v) => parseInt(v, 10));
-        const startDt = new Date(y, m - 1, d, sh, sm, 0);
-        const startIso = startDt.toISOString();
-        payload.append("start_time", startIso);
-
-        if (formData.end_time) {
-          const [eh, em] = formData.end_time.split(":").map((v) => parseInt(v, 10));
-          const endDt = new Date(y, m - 1, d, eh, em, 0);
-          // If end is not after start, default to start + 1 hour (but validate prevents invalid input)
-          const finalEnd = endDt <= startDt ? new Date(startDt.getTime() + 60 * 60 * 1000) : endDt;
-          payload.append("end_time", finalEnd.toISOString());
-        } else {
-          // Default end time to start + 1 hour
-          const defaultEnd = new Date(startDt.getTime() + 60 * 60 * 1000);
-          payload.append("end_time", defaultEnd.toISOString());
-        }
-      }
-
-      payload.append("is_active", formData.is_active ? "1" : "0");
-      
-      // Ensure server-expected array fields exist to avoid PHP "Undefined array key" errors.
-      // Many PHP backends expect array fields like `images[]` or `category_ids[]`.
-      // If the form doesn't include them, append empty entries so indexed access (e.g. [1]) won't crash.
-      const ensureArrayField = (fd: FormData, key: string, minCount = 2) => {
-        const keys = Array.from(fd.keys());
-        const hasArrayKey = keys.some((k) => k === `${key}[]` || k.startsWith(`${key}[`));
-        if (!hasArrayKey) {
-          for (let i = 0; i < minCount; i++) {
-            fd.append(`${key}[]`, "");
-            // also add explicit numeric indexes (images[0], images[1]) in case server accesses those
-            fd.append(`${key}[${i}]`, "");
-          }
-        }
+      const payload = {
+        title: formData.title,
+        description: formData.description,
+        date: formData.date,
+        time: time,
+        city: formData.city,
+        place: formData.place,
+        audience: formData.audience,
+        is_active: formData.is_active ? "1" : "0",
       };
 
-      ensureArrayField(payload, "images", 2);
-      ensureArrayField(payload, "category_ids", 2);
-      const newEvent = await addEvent(payload);
+      await createEvent(payload);
       alert("Event added successfully!");
-      console.log("New event:", newEvent);
       setFormData({
-        name: "",
+        title: "",
         short_description: "",
         description: "",
         date: "",
         start_time: "",
         end_time: "",
-        location: "",
-        location_extra_info: "",
+        place: "",
+        city: "Helsinki",
+        audience: "Kaikille",
         is_active: true,
       });
     } catch (err: any) {
@@ -159,8 +129,8 @@ export default function NewEvent() {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <Label htmlFor="eventName">Title</Label>
-          <Input id="eventName" value={formData.name} onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))} placeholder="e.g. Nestin leikkitreffit" className="w-80" />
-          {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+          <Input id="eventName" value={formData.title} onChange={(e) => setFormData((p) => ({ ...p, title: e.target.value }))} placeholder="e.g. Nestin leikkitreffit" className="w-80" />
+          {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
         </div>
 
         <div>
@@ -198,14 +168,20 @@ export default function NewEvent() {
             <TimeRanges type="time" value={formData.end_time} onChange={handleChange("end_time")} className="w-44" />
           </div>
           <div>
-            <Label>Location</Label>
-            <Input value={formData.location} onChange={handleChange("location")} placeholder="e.g. Cafe Elo" className="w-80" />
+            <Label>Place</Label>
+            <Input value={formData.place} onChange={handleChange("place")} placeholder="e.g. Cafe Elo" className="w-80" />
           </div>
         </div>
 
-        <div>
-          <Label>Location extra info</Label>
-          <Input value={formData.location_extra_info} onChange={handleChange("location_extra_info")} placeholder="e.g. Room / address details" className="w-80" />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>City</Label>
+            <Input value={formData.city} onChange={handleChange("city")} placeholder="Helsinki" className="w-80" />
+          </div>
+          <div>
+            <Label>Audience</Label>
+            <Input value={formData.audience} onChange={handleChange("audience")} placeholder="e.g. Kaikille, 0-3v, etc." className="w-80" />
+          </div>
         </div>
 
         <div className="flex items-center gap-3">
