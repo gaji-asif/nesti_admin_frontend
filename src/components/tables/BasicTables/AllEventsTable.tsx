@@ -9,10 +9,10 @@ import {
 } from "../../ui/table";
 import Button from "../../ui/button/Button";
 import { TrashBinIcon } from "../../../icons";
-import { getAllEvents, deleteEvent, Event } from "../../../api/eventsApi";
+import { getEvents, deleteEvent, EventItem } from "../../../api/eventsApi";
 
 export default function AllEventsTable() {
-  const [events, setEvents] = useState<Event[] | null>(null);
+  const [events, setEvents] = useState<EventItem[] | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [loadedCount, setLoadedCount] = useState(10);
   const itemsPerPage = 10;
@@ -20,7 +20,7 @@ export default function AllEventsTable() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const data = await getAllEvents();
+        const data = await getEvents();
         setEvents(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Failed to load events:", error);
@@ -30,9 +30,9 @@ export default function AllEventsTable() {
     fetchEvents();
   }, []);
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     const ev = events?.find((e) => e.id === id);
-    const title = ev?.name || `Event ${id}`;
+    const title = ev?.title || `Event ${id}`;
     const confirmed = window.confirm(`Are you sure you want to delete \"${title}\"? This action cannot be undone.`);
     if (!confirmed) return;
     try {
@@ -50,9 +50,10 @@ export default function AllEventsTable() {
     const s = searchTerm.toLowerCase();
     return (
       e.id.toString().includes(s) ||
-      (e.name || "").toLowerCase().includes(s) ||
+      (e.title || "").toLowerCase().includes(s) ||
       (e.short_description || "").toLowerCase().includes(s) ||
-      (e.location || "").toLowerCase().includes(s)
+      (e.place || "").toLowerCase().includes(s) ||
+      (e.city || "").toLowerCase().includes(s)
     );
   });
 
@@ -98,11 +99,11 @@ export default function AllEventsTable() {
               displayed.map((ev) => (
                 <TableRow key={ev.id}>
                   <TableCell className="px-5 py-4 sm:px-6 text-start text-theme-sm dark:text-white">{ev.id}</TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{ev.name || 'Untitled event'}</TableCell>
+                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{ev.title || 'Untitled event'}</TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{ev.short_description || '—'}</TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 min-w-[200px]">{ev.start_time ? new Date(ev.start_time).toLocaleString() : ev.event_date_time || '—'}</TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{ev.location || '—'}</TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{ev.creator?.name || '—'}</TableCell>
+                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 min-w-[200px]">{ev.date} {ev.time || '—'}</TableCell>
+                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{ev.place || '—'} {ev.city && `(${ev.city})`}</TableCell>
+                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{ev.organizer || '—'}</TableCell>
                     <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 space-x-2">
                     
                     {/* <Button size="sm" onClick={() => handleEdit(ev.id)}>Edit</Button> */}
