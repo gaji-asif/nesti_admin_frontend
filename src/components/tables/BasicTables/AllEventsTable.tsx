@@ -22,6 +22,8 @@ export default function AllEventsTable() {
   const fetchEvents = async () => {
     try {
       const data = await getEvents();
+      // Debug: print fetched events to browser console for inspection
+      console.log("AllEventsTable - fetched events:", data);
       setEvents(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Failed to load events:", error);
@@ -31,7 +33,6 @@ export default function AllEventsTable() {
 
   useEffect(() => {
     fetchEvents();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -116,7 +117,10 @@ export default function AllEventsTable() {
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{ev.place || '—'} {ev.city && `(${ev.city})`}</TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{ev.organizer || '—'}</TableCell>
                     <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                      <Button size="sm" onClick={() => setEditingEvent(ev)}><PencilIcon /></Button>
+                      <Button size="sm" onClick={() => {
+                        console.debug('AllEventsTable - open edit modal for event:', ev);
+                        setEditingEvent(ev);
+                      }}><PencilIcon /></Button>
                     </TableCell>
                     <TableCell className="px-4 py-3 text-red-500 text-start text-theme-sm dark:text-red-400">
                       <Button size="sm" className="bg-red-500 hover:bg-red-600 text-white" onClick={() => handleDelete(ev.id)}><TrashBinIcon /></Button>
