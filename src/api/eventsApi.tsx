@@ -64,8 +64,8 @@ export const createEvent = async (
 
 export const deleteEvent = async (id: string): Promise<void> => {
   try {
-    await api.delete(`/delete-event/${id}`);
-    console.log("Event deleted successfully");
+    await api.delete(`/events/${id}`);
+    console.log("Event deleted successfully (DELETE /events/:id)");
   } catch (error) {
     console.error("Error deleting event:", error);
     throw error;
@@ -74,10 +74,10 @@ export const deleteEvent = async (id: string): Promise<void> => {
 
 export const editEvent = async (id: string, payload: Partial<CreateEventPayload>): Promise<void> => {
   try {
-    await api.post(`/edit-event/${id}`, payload);
-    console.log("Event edited successfully");
+    await api.put(`/events/${id}`, payload);
+    console.log("Event updated successfully (PUT /events/:id)");
   } catch (error) {
-    console.error("Error editing event:", error);
+    console.error("Error updating event:", error);
     throw error;
   }
 };
