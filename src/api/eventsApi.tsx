@@ -24,15 +24,13 @@ export interface EventItem {
 }
 
 export interface CreateEventPayload {
-  name: string;
-  short_description: string;
+  title: string;
+  description: string;
   date: string;
   time: string;
-  location: string;
-  place: string;
   city: string;
-  event_for: string;
-  is_active?: string; // "1" or "0" for PHP-style backends
+  place: string;
+  audience: string;
 }
 
 // Function to get events list
@@ -80,14 +78,13 @@ export const editEvent = async (id: string, formPayload: any): Promise<void> => 
   try {
     // Map frontend form fields to backend API fields
     const body = {
-      name: formPayload.title,
-      location: `${formPayload.place}, ${formPayload.city}`,
+      title: formPayload.title,
+      description: formPayload.short_description || formPayload.description || "",
       date: formPayload.date,
       time: formPayload.end_time ? `${formPayload.start_time} - ${formPayload.end_time}` : formPayload.start_time,
       place: formPayload.place,
       city: formPayload.city,
-      event_for: formPayload.audience || "",
-      short_description: formPayload.short_description || formPayload.description || ""
+      audience: formPayload.audience || ""
     };
 
     console.debug('editEvent - sending body:', body);
@@ -99,14 +96,13 @@ export const editEvent = async (id: string, formPayload: any): Promise<void> => 
     if (status === 405 || status === 404) {
       // Reconstruct body with the same format for fallback
       const body = {
-        name: formPayload.title,
-        location: `${formPayload.place}, ${formPayload.city}`,
+        title: formPayload.title,
+        description: formPayload.short_description || formPayload.description || "",
         date: formPayload.date,
         time: formPayload.end_time ? `${formPayload.start_time} - ${formPayload.end_time}` : formPayload.start_time,
         place: formPayload.place,
         city: formPayload.city,
-        event_for: formPayload.audience || "",
-        short_description: formPayload.short_description || formPayload.description || ""
+        audience: formPayload.audience || ""
       };
       await api.post(`/events/${id}`, { ...body, _method: 'PUT' });
       console.log("Event updated successfully via POST fallback (POST /events/:id with _method=PUT)");

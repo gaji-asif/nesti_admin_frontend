@@ -112,7 +112,7 @@ export default function AllEventsTable() {
                 <TableRow key={ev.id}>
                   <TableCell className="px-5 py-4 sm:px-6 text-start text-theme-sm dark:text-white">{ev.id}</TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{ev.title || 'Untitled event'}</TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{ev.short_description || '—'}</TableCell>
+                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{ev.description || ev.short_description || '—'}</TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 min-w-[200px]">{ev.date} {ev.time || '—'}</TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{ev.place || '—'} {ev.city && `(${ev.city})`}</TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{ev.organizer || '—'}</TableCell>

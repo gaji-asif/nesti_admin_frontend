@@ -6,14 +6,12 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { createEvent } from "../../api/eventsApi";
 import DatePicker from "../../components/form/date-picker";
-import TimeRanges from "../../components/form/time-ranges";
 
 interface EventForm {
-  name: string;
-  short_description: string;
+  title: string;
+  description: string;
   date: string; // yyyy-mm-dd
-  start_time: string; // HH:MM
-  end_time: string; // HH:MM
+  time?: string; // e.g. "10:15 - 11:15"
   place: string;
   city: string;
   audience: string;
@@ -37,11 +35,10 @@ export default function NewEvent() {
   };
 
   const [formData, setFormData] = useState<EventForm>({
-    name: "",
-    short_description: "",
+    title: "",
+    description: "",
     date: "",
-    start_time: "",
-    end_time: "",
+    time: "",
     place: "",
     city: "Helsinki",
     audience: "Kaikille",
@@ -77,23 +74,12 @@ export default function NewEvent() {
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
-    if (!formData.name.trim()) newErrors.name = "Event title is required";
+    if (!formData.title.trim()) newErrors.name = "Event title is required";
     if (!formData.date) newErrors.date = "Event date is required";
-    if (!formData.start_time) newErrors.start_time = "Start time is required";
+    // Require the single `time` text field
+    if (!formData.time) newErrors.time = "Time is required";
     if (!formData.city) newErrors.city = "City is required";
-    // If end_time present, ensure it's after start_time
-    if (formData.date && formData.start_time && formData.end_time) {
-      try {
-        const [y, m, d] = formData.date.split("-").map((v) => parseInt(v, 10));
-        const [sh, sm] = formData.start_time.split(":").map((v) => parseInt(v, 10));
-        const [eh, em] = formData.end_time.split(":").map((v) => parseInt(v, 10));
-        const startDt = new Date(y, m - 1, d, sh, sm, 0);
-        const endDt = new Date(y, m - 1, d, eh, em, 0);
-        if (endDt <= startDt) newErrors.end_time = "End time must be after start time";
-      } catch (e) {
-        // ignore parsing errors here; other validations will catch missing fields
-      }
-    }
+    // No start/end parsing when using free-text `time`
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -103,30 +89,26 @@ export default function NewEvent() {
     if (!validate()) return;
     setSubmitting(true);
     try {
-      // Format time as HH:MM-HH:MM or just HH:MM
-      const time = formData.end_time 
-        ? `${formData.start_time}-${formData.end_time}`
-        : formData.start_time;
+      // Use the free-text `time` field (e.g. "10:15 - 11:15")
+      const time = formData.time || "";
 
       const payload = {
-        name: formData.name,
-        location: `${formData.place}, ${formData.city}`,
+        title: formData.title,
+        description: formData.description,
         date: formData.date,
         time: time,
         place: formData.place,
         city: formData.city,
-        event_for: formData.audience,
-        short_description: formData.short_description,
+        audience: formData.audience,
       };
 
       await createEvent(payload);
       alert("Event created successfully!");
       setFormData({
-        name: "",
-        short_description: "",
+        title: "",
+        description: "",
         date: "",
-        start_time: "",
-        end_time: "",
+        time: "",
         place: "",
         city: "Helsinki",
         audience: "For everyone",
@@ -154,24 +136,24 @@ export default function NewEvent() {
           <Label htmlFor="eventName">Title *</Label>
           <Input 
             id="eventName" 
-            value={formData.name} 
-            onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))} 
+            value={formData.title} 
+            onChange={(e) => setFormData((p) => ({ ...p, title: e.target.value }))} 
             placeholder="e.g. Playgroup for under 1-year-olds" 
             className="w-full" 
           />
-          {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+          {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
         </div>
 
         <div>
           <Label htmlFor="description">Description (max 300 characters)</Label>
           <TextArea 
-            value={formData.short_description} 
-            onChange={handleTextAreaChange("short_description")} 
+            value={formData.description} 
+            onChange={handleTextAreaChange("description")} 
             rows={4} 
             placeholder="Short description of the event..." 
           />
           <div className="text-right text-sm text-gray-500 mt-1">
-            {formData.short_description.length}/300
+            {formData.description.length}/300
           </div>
         </div>
 
@@ -187,13 +169,16 @@ export default function NewEvent() {
             {errors.date && <p className="mt-1 text-sm text-red-600">{errors.date}</p>}
           </div>
           <div>
-            <Label>Time *</Label>
-            <div className="flex items-center gap-2">
-              <TimeRanges type="time" value={formData.start_time} onChange={handleChange("start_time")} className="flex-1" />
-              <span className="text-gray-500">–</span>
-              <TimeRanges type="time" value={formData.end_time} onChange={handleChange("end_time")} className="flex-1" />
-            </div>
-            {errors.start_time && <p className="mt-1 text-sm text-red-600">{errors.start_time}</p>}
+            <Label htmlFor="eventTime">Time *</Label>
+            <Input
+              id="eventTime"
+              type="text"
+              value={formData.time}
+              onChange={(e) => setFormData((p) => ({ ...p, time: e.target.value }))}
+              placeholder="e.g. 10:15 - 11:15"
+              className="w-full"
+            />
+            {errors.time && <p className="mt-1 text-sm text-red-600">{errors.time}</p>}
           </div>
         </div>
 
@@ -225,7 +210,7 @@ export default function NewEvent() {
           </div>
         </div>
 
-        <div>
+        <div className="hidden">
           <Label>Target audience</Label>
           <select 
             value={formData.audience} 
