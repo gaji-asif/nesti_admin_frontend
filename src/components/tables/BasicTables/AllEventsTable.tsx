@@ -8,7 +8,9 @@ import {
   TableRow,
 } from "../../ui/table";
 import Button from "../../ui/button/Button";
-import { TrashBinIcon } from "../../../icons";
+import { TrashBinIcon, PencilIcon } from "../../../icons";
+import { Modal } from "../../ui/modal";
+import EditEventForm from "../../../pages/Forms/EditEventForm";
 import { getEvents, deleteEvent, EventItem } from "../../../api/eventsApi";
 
 export default function AllEventsTable() {
@@ -17,16 +19,19 @@ export default function AllEventsTable() {
   const [loadedCount, setLoadedCount] = useState(10);
   const itemsPerPage = 10;
 
+  const fetchEvents = async () => {
+    try {
+      const data = await getEvents();
+      // Debug: print fetched events to browser console for inspection
+      console.log("AllEventsTable - fetched events:", data);
+      setEvents(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Failed to load events:", error);
+      setEvents([]);
+    }
+  };
+
   useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const data = await getEvents();
-        setEvents(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error("Failed to load events:", error);
-        setEvents([]);
-      }
-    };
     fetchEvents();
   }, []);
 
@@ -42,6 +47,12 @@ export default function AllEventsTable() {
       console.error("Error deleting event:", error);
       alert(`Failed to delete event: ${error.response?.data?.message || error.message}`);
     }
+  };
+
+  const [editingEvent, setEditingEvent] = useState<EventItem | null>(null);
+  const handleSaved = async () => {
+    await fetchEvents();
+    setEditingEvent(null);
   };
 
 
@@ -90,7 +101,8 @@ export default function AllEventsTable() {
               <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-sm dark:text-white">When</TableCell>
               <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-sm dark:text-white">Location</TableCell>
               <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-sm dark:text-white">Creator</TableCell>
-              <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-sm dark:text-white">Actions</TableCell>
+              <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-sm dark:text-white">Edit</TableCell>
+              <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-sm dark:text-white">Delete</TableCell>
             </TableRow>
           </TableHeader>
 
@@ -100,22 +112,26 @@ export default function AllEventsTable() {
                 <TableRow key={ev.id}>
                   <TableCell className="px-5 py-4 sm:px-6 text-start text-theme-sm dark:text-white">{ev.id}</TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{ev.title || 'Untitled event'}</TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{ev.short_description || '—'}</TableCell>
+                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{ev.description || ev.short_description || '—'}</TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 min-w-[200px]">{ev.date} {ev.time || '—'}</TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{ev.place || '—'} {ev.city && `(${ev.city})`}</TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{ev.organizer || '—'}</TableCell>
-                    <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 space-x-2">
-                    
-                    {/* <Button size="sm" onClick={() => handleEdit(ev.id)}>Edit</Button> */}
-                    <Button size="sm" className="bg-red-500 hover:bg-red-600 text-white" onClick={() => handleDelete(ev.id)}><TrashBinIcon /></Button>
-                  </TableCell>
+                    <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                      <Button size="sm" onClick={() => {
+                        console.debug('AllEventsTable - open edit modal for event:', ev);
+                        setEditingEvent(ev);
+                      }}><PencilIcon /></Button>
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-red-500 text-start text-theme-sm dark:text-red-400">
+                      <Button size="sm" className="bg-red-500 hover:bg-red-600 text-white" onClick={() => handleDelete(ev.id)}><TrashBinIcon /></Button>
+                    </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell className="px-4 py-8 text-center text-gray-500">
+                <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
                   {events === null ? 'Loading events...' : (searchTerm ? 'No events match your search' : 'No events found')}
-                </TableCell>
+                </td>
               </TableRow>
             )}
           </TableBody>
@@ -126,6 +142,13 @@ export default function AllEventsTable() {
         <div className="flex justify-center px-4 py-3 bg-white border-t border-gray-200 dark:bg-gray-800 dark:border-gray-700">
           <Button size="sm" onClick={() => setLoadedCount((p) => p + itemsPerPage)} className="px-4 py-1 bg-blue-500 text-white hover:bg-blue-600">Load More</Button>
         </div>
+      )}
+      {editingEvent && (
+        <Modal isOpen={!!editingEvent} onClose={() => setEditingEvent(null)}>
+          <div className="p-6 max-w-4xl mx-auto">
+            <EditEventForm event={editingEvent} onClose={() => setEditingEvent(null)} onSaved={handleSaved} />
+          </div>
+        </Modal>
       )}
     </div>
   );

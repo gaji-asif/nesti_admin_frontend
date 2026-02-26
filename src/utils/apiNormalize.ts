@@ -30,29 +30,64 @@ export function normalizeListResponse<T = any>(data: any): T[] {
 // Event-specific normalizer: maps backend event object to frontend EventItem shape
 export function normalizeEventItem(e: any) {
   if (!e) return null;
+  const getPublisherName = (obj: any) => {
+    if (!obj) return "";
+    // Check creator object first (actual API structure)
+    if (obj.creator && obj.creator.name) return obj.creator.name;
+    if (obj.publisher_name) return obj.publisher_name;
+    if (obj.publisherName) return obj.publisherName;
+    if (obj.publisher) {
+      if (typeof obj.publisher === 'string') return obj.publisher;
+      if (obj.publisher.name) return obj.publisher.name;
+      if (obj.publisher.full_name) return obj.publisher.full_name;
+    }
+    if (obj.publisher_name_display) return obj.publisher_name_display;
+    if (obj.user && (obj.user.name || obj.user.full_name)) return obj.user.name || obj.user.full_name;
+    return "";
+  };
+
+  // Extract venue name from full location address
+  const extractVenue = (location: string) => {
+    if (!location) return "";
+    const str = location.toString().trim();
+    // If it contains address info, take the first part (venue name)
+    if (str.includes(',')) {
+      const parts = str.split(',').map(p => p.trim());
+      return parts[0] || str;
+    }
+    return str;
+  };
+
+  // Extract city from location or use default
+  const extractCity = (location: string, locationExtra: string) => {
+    if (locationExtra) return locationExtra;
+    if (location && location.includes('Helsinki')) return 'Helsinki';
+    return 'Helsinki'; // Default
+  };
+
   return {
     id: e.id?.toString() ?? "",
     title: e.name ?? "—",
     description: e.description ?? "",
     short_description: e.short_description ?? "",
-    date: e.start_time?.slice(0, 10) ?? "",
+    date: e.start_time ? e.start_time.slice(0, 10) : "",
     time: e.start_time && e.end_time
-      ? `${e.start_time.slice(11,16)}–${e.end_time.slice(11,16)}`
-      : e.start_time?.slice(11,16) ?? "",
-    city: e.location_extra_info ?? "Helsinki",
-    place: e.location ?? "",
+      ? `${e.start_time.slice(11, 16)}–${e.end_time.slice(11, 16)}`
+      : e.start_time ? e.start_time.slice(11, 16) : "",
+    city: extractCity(e.location, e.location_extra_info),
+    place: extractVenue(e.location ?? ""),
     ageGroup: e.audience_min_age || e.audience_max_age
       ? `${e.audience_min_age ?? ""}–${e.audience_max_age ?? ""}`
       : "Kaikille",
     attendeesCount: 0,
-    organizer: e.organizer ?? "Tuntematon",
-    createdByUserId: e.created_by_user_id ?? "",
+    organizer: getPublisherName(e) ?? "Tuntematon",
+    createdByUserId: e.created_by?.toString() ?? "",
     createdAt: e.created_at ?? "",
     lat: e.lat ?? undefined,
     lng: e.lng ?? undefined,
     notice: e.notice ?? "",
     recurring: e.recurring ?? "",
-    publisher_name: e.publisher_name ?? "",
+    publisher_name: getPublisherName(e) ?? "",
     price: e.price ?? "Maksuton",
   };
 }
