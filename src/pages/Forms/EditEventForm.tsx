@@ -255,7 +255,7 @@ export default function EditEventForm({ event, onClose, onSaved }: Props) {
           </div>
         </div>
 
-        <div>
+        <div className="hidden">
           <Label>Target audience</Label>
           <select 
             value={formData.audience} 

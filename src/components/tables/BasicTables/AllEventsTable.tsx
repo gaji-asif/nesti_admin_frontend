@@ -145,7 +145,7 @@ export default function AllEventsTable() {
       )}
       {editingEvent && (
         <Modal isOpen={!!editingEvent} onClose={() => setEditingEvent(null)}>
-          <div className="p-6 max-w-3xl">
+          <div className="p-6 max-w-4xl mx-auto">
             <EditEventForm event={editingEvent} onClose={() => setEditingEvent(null)} onSaved={handleSaved} />
           </div>
         </Modal>
