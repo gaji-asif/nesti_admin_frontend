@@ -6,28 +6,21 @@ export interface ServiceClickSummary {
   website_visit_clicks: number;
 }
 
-// Function to get service click summary analytics
-export const getServiceClickSummary = async (serviceId?: number | string): Promise<ServiceClickSummary[]> => {
+export type AnalyticsFilter = 'today' | 'week' | 'month';
+
+export const getServiceClickSummary = async (service_id?: number | string, filter?: AnalyticsFilter): Promise<ServiceClickSummary[]> => {
   try {
-    const url = serviceId 
-      ? `/analytics/service-click-summary?service_id=${serviceId}`
-      : "/analytics/service-click-summary";
-    
-    const response = await api.get(url);
+    const response = await api.get("/analytics/service-click-summary", {
+      params: { service_id, filter } // Axios sẽ tự xóa các giá trị undefined và nối ?a=1&b=2
+    });
 
-    console.log("Service click summary fetched successfully:", response.data);
-
-    // Handle the API response structure with success/message/data wrapper
-    if (response.data && response.data.success && response.data.data) {
-      return response.data.data;
-    } else if (Array.isArray(response.data)) {
-      return response.data;
-    } else {
-      console.warn('Unexpected API response structure:', response.data);
-      return [];
-    }
+    return response.data?.data || response.data || [];
   } catch (error) {
-    console.error("Error fetching service click summary:", error);
-    throw error;
+    console.error("Lỗi lấy dữ liệu analytics:", error);
+    return []; 
   }
 };
+
+export const getServiceClickSummaryToday = (id?: number | string) => getServiceClickSummary(id, 'today');
+export const getServiceClickSummaryWeek = (id?: number | string) => getServiceClickSummary(id, 'week');
+export const getServiceClickSummaryMonth = (id?: number | string) => getServiceClickSummary(id, 'month');
