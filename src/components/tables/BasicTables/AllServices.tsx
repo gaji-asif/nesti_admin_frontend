@@ -15,7 +15,7 @@ import { deleteService } from "../../../api/servicesAPI";
 
 export default function AllServices() {
   const navigate = useNavigate();
-  const { services, setServices } = useServices();
+  const { services, setData: setServices } = useServices();
   const { categories } = useCategories();
   const [searchTerm, setSearchTerm] = useState('');
   const [loadedCount, setLoadedCount] = useState(10);
