@@ -15,7 +15,7 @@ import { useCategories } from "../../../hooks/useApiData";
 
 export default function AllCategories() {
   const navigate = useNavigate();
-  const { categories, setCategories } = useCategories();
+  const { categories, setData: setCategories } = useCategories();
   const [searchTerm, setSearchTerm] = useState('');
   const [loadedCount, setLoadedCount] = useState(10);
   const itemsPerPage = 10;
