@@ -1,10 +1,12 @@
 import ComponentCard from "../../components/common/ComponentCard";
-import Label from "../../components/form/Label";
+import { FormGroup } from "../../components/form/FormGroup";
 import Input from "../../components/form/input/InputField";
 import TextArea from "../../components/form/input/TextArea";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
 import { getAllCategories, Category, updateCategory, UpdateCategoryData } from "../../api/categoriesApi";
+import { categorySchema } from "../../features/categories/categorySchema";
+import { useForm } from "../../hooks/useForm";
 
 interface EditCategoryFormProps {
   categoryId?: number;
@@ -22,12 +24,8 @@ export default function EditCategoryForm({ categoryId: propCategoryId, onSuccess
   const categoryId = propCategoryId || (id ? parseInt(id) : 0);
   
   const [loading, setLoading] = useState(true);
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [submitting, setSubmitting] = useState(false);
-  const [formData, setFormData] = useState<CategoryFormData>({
-    categoryName: "",
-    categoryDescription: "",
-  });
+  const { formData, setFormData, errors, setErrors, submitting, setSubmitting, handleChange } =
+    useForm<CategoryFormData>({ categoryName: "", categoryDescription: "" }, categorySchema);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -73,22 +71,16 @@ export default function EditCategoryForm({ categoryId: propCategoryId, onSuccess
 
   // Handler for direct value changes (TextArea)
   const handleValueChange = (field: keyof CategoryFormData) => (value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
-  }
+    handleChange(field, value);
+  };
 
-  // Handler for Event changes (Input)
-  const handleInputChange =
-    (field: keyof CategoryFormData) => (e: React.ChangeEvent<HTMLInputElement>) => {
-      handleValueChange(field)(e.target.value);
-    };
+  // Handler for Input changes
+  const handleInputChange = (field: keyof CategoryFormData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleChange(field, e.target.value);
+  };
 
   const validateForm = () => {
-    const newErrors: { [key: string]: string } = {};
-
-    if (!formData.categoryName.trim()) newErrors.categoryName = "Category name is required";
-    if (!formData.categoryDescription.trim()) newErrors.categoryDescription = "Category description is required";
-    
+    const newErrors = categorySchema(formData);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -121,9 +113,7 @@ export default function EditCategoryForm({ categoryId: propCategoryId, onSuccess
   return (
     <ComponentCard title="Edit Category Form">
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          {/* Name */}
-          <Label htmlFor="inputCategory">Category Name</Label>
+        <FormGroup label="Category Name" htmlFor="inputCategory" error={errors.categoryName}>
           <Input
             type="text"
             id="inputCategory"
@@ -131,14 +121,9 @@ export default function EditCategoryForm({ categoryId: propCategoryId, onSuccess
             value={formData.categoryName}
             onChange={handleInputChange("categoryName")}
           />
-          {errors.categoryName && (
-            <p className="mt-1.5 text-xs text-error-500">{errors.categoryName}</p>
-          )}
-        </div>
+        </FormGroup>
         
-        <div>
-          {/* Description */}
-          <Label htmlFor="categoryDescription">Category Description</Label>
+        <FormGroup label="Category Description" htmlFor="categoryDescription" error={errors.categoryDescription}>
           <TextArea
             placeholder="Enter category description"
             value={formData.categoryDescription}
@@ -146,10 +131,7 @@ export default function EditCategoryForm({ categoryId: propCategoryId, onSuccess
             className="w-full"
             rows={4}
           />
-          {errors.categoryDescription && (
-            <p className="mt-1.5 text-xs text-error-500">{errors.categoryDescription}</p>
-          )}
-        </div>
+        </FormGroup>
 
         <div className="flex items-center justify-end space-x-4">
           <button

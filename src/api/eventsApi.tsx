@@ -107,7 +107,14 @@ export const editEvent = async (id: string, formPayload: EditEventPayload): Prom
   } catch (error: unknown) {
     // Keep your existing POST fallback logic here...
     const resp = (error as Record<string, unknown> | null)?.response;
-    const status = typeof resp === 'object' && resp !== null && 'status' in resp ? (resp as any).status as number | undefined : undefined;
+    let status: number | undefined;
+    if (resp && typeof resp === 'object' && 'status' in resp) {
+      const rrec = resp as Record<string, unknown>;
+      const s = rrec.status;
+      status = typeof s === 'number' ? s : undefined;
+    } else {
+      status = undefined;
+    }
     if (status === 405 || status === 404) {
       // Reconstruct body with the same format for fallback
       const body = {
