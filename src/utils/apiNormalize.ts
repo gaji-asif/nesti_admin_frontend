@@ -1,93 +1,77 @@
 // Helpers to normalize API responses which may be wrapped or shaped differently
+import { z } from "zod";
 
-export function normalizeServiceResponse(data: any): any | any[] | null {
+const isObject = (v: unknown): v is Record<string, any> => typeof v === 'object' && v !== null && !Array.isArray(v);
+
+// 1. A single unwrap function for all cases
+export function unwrapPayload(data: unknown, keys: string[] = ['data', 'service', 'services']): any {
+  let p: any = data;
+  while (isObject(p)) {
+    const key = keys.find(k => k in p);
+    if (!key) break;
+    p = p[key];
+  }
+  return p;
+}
+
+export function normalizeServiceResponse(data: unknown): Record<string, unknown> | Record<string, unknown>[] | null {
   if (data === undefined || data === null) return null;
 
   // Axios-like wrapper: response.data
-  let payload = data;
-  if (payload && payload.data !== undefined) payload = payload.data;
+  let payload: unknown = data;
+  if (isObject(payload) && 'data' in payload) payload = (payload as Record<string, unknown>).data;
 
   // Some APIs wrap the object under `service`
-  if (payload && payload.service !== undefined) payload = payload.service;
+  if (isObject(payload) && 'service' in payload) payload = (payload as Record<string, unknown>).service;
 
   // If it's an array already, return as-is
-  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload)) return payload as Record<string, unknown>[];
 
   // If payload looks like a service object, return it; otherwise null
-  if (payload && (payload.id !== undefined || payload.name !== undefined)) return payload;
+  if (isObject(payload) && ('id' in payload || 'name' in payload)) return payload as Record<string, unknown>;
 
   return null;
 }
 
-export function normalizeListResponse<T = any>(data: any): T[] {
+export function normalizeListResponse<T = unknown>(data: unknown): T[] {
   if (!data) return [];
   if (Array.isArray(data)) return data as T[];
-  if (data.data && Array.isArray(data.data)) return data.data as T[];
-  if (data.services && Array.isArray(data.services)) return data.services as T[];
+  if (isObject(data) && 'data' in data && Array.isArray((data as Record<string, unknown>).data)) return (data as Record<string, unknown>).data as unknown as T[];
+  if (isObject(data) && 'services' in data && Array.isArray((data as Record<string, unknown>).services)) return (data as Record<string, unknown>).services as unknown as T[];
   return [];
 }
 
 // Event-specific normalizer: maps backend event object to frontend EventItem shape
-export function normalizeEventItem(e: any) {
-  if (!e) return null;
-  const getPublisherName = (obj: any) => {
-    if (!obj) return "";
-    // Check creator object first (actual API structure)
-    if (obj.creator && obj.creator.name) return obj.creator.name;
-    if (obj.publisher_name) return obj.publisher_name;
-    if (obj.publisherName) return obj.publisherName;
-    if (obj.publisher) {
-      if (typeof obj.publisher === 'string') return obj.publisher;
-      if (obj.publisher.name) return obj.publisher.name;
-      if (obj.publisher.full_name) return obj.publisher.full_name;
-    }
-    if (obj.publisher_name_display) return obj.publisher_name_display;
-    if (obj.user && (obj.user.name || obj.user.full_name)) return obj.user.name || obj.user.full_name;
-    return "";
-  };
+// Use Zod to validate/normalize event payloads
+const EventSchema = z.object({
+  id: z.coerce.string(),
+  name: z.string().default("—"),
+  description: z.string().optional().default(""),
+  start_time: z.string().optional().default(""),
+  end_time: z.string().optional().default(""),
+  location: z.string().optional().default(""),
+  location_extra_info: z.string().optional().default("Helsinki"),
+  publisher_name: z.string().optional().default("Tuntematon"),
+  price: z.string().optional().transform(v => v || "Maksuton").default("Maksuton"),
+});
 
-  // Extract venue name from full location address
-  const extractVenue = (location: string) => {
-    if (!location) return "";
-    const str = location.toString().trim();
-    // If it contains address info, take the first part (venue name)
-    if (str.includes(',')) {
-      const parts = str.split(',').map(p => p.trim());
-      return parts[0] || str;
-    }
-    return str;
-  };
+export function normalizeEventItem(e: unknown) {
+  const payload = unwrapPayload(e);
+  const result = EventSchema.safeParse(payload);
+  if (!result.success) return null;
 
-  // Extract city from location or use default
-  const extractCity = (location: string, locationExtra: string) => {
-    if (locationExtra) return locationExtra;
-    if (location && location.includes('Helsinki')) return 'Helsinki';
-    return 'Helsinki'; // Default
-  };
+  const data = result.data;
+  const start = data.start_time;
+  const end = data.end_time;
 
   return {
-    id: e.id?.toString() ?? "",
-    title: e.name ?? "—",
-    description: e.description ?? "",
-    short_description: e.short_description ?? "",
-    date: e.start_time ? e.start_time.slice(0, 10) : "",
-    time: e.start_time && e.end_time
-      ? `${e.start_time.slice(11, 16)}–${e.end_time.slice(11, 16)}`
-      : e.start_time ? e.start_time.slice(11, 16) : "",
-    city: extractCity(e.location, e.location_extra_info),
-    place: extractVenue(e.location ?? ""),
-    ageGroup: e.audience_min_age || e.audience_max_age
-      ? `${e.audience_min_age ?? ""}–${e.audience_max_age ?? ""}`
-      : "Kaikille",
-    attendeesCount: 0,
-    organizer: getPublisherName(e) ?? "Tuntematon",
-    createdByUserId: e.created_by?.toString() ?? "",
-    createdAt: e.created_at ?? "",
-    lat: e.lat ?? undefined,
-    lng: e.lng ?? undefined,
-    notice: e.notice ?? "",
-    recurring: e.recurring ?? "",
-    publisher_name: getPublisherName(e) ?? "",
-    price: e.price ?? "Maksuton",
+    id: data.id,
+    title: data.name,
+    date: start.slice(0, 10),
+    time: start && end ? `${start.slice(11, 16)}–${end.slice(11, 16)}` : start.slice(11, 16),
+    city: data.location_extra_info,
+    place: data.location.split(',')[0].trim(),
+    organizer: data.publisher_name,
+    price: data.price,
   };
 }

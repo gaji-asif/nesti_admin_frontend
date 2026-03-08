@@ -11,12 +11,12 @@ export type AnalyticsFilter = 'today' | 'week' | 'month';
 export const getServiceClickSummary = async (service_id?: number | string, filter?: AnalyticsFilter): Promise<ServiceClickSummary[]> => {
   try {
     const response = await api.get("/analytics/service-click-summary", {
-      params: { service_id, filter } // Axios sẽ tự xóa các giá trị undefined và nối ?a=1&b=2
+      params: { service_id, filter } // Axios will automatically remove undefined values and join params as ?a=1&b=2
     });
 
     return response.data?.data || response.data || [];
   } catch (error) {
-    console.error("Lỗi lấy dữ liệu analytics:", error);
+    console.error("Error fetching analytics data:", error);
     return []; 
   }
 };

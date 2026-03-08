@@ -81,12 +81,12 @@ export const updateService = async (
       const url = id ? `/services/${id}` : `/services`;
       // Debug: log FormData entries (show file metadata only)
       try {
-        const dbg: Record<string, any> = {};
+        const dbg: Record<string, unknown> = {};
         for (const [k, v] of (serviceData as FormData).entries()) {
           dbg[k] = v instanceof File ? { name: v.name, size: v.size, type: v.type } : v;
         }
         console.log('updateService - sending FormData to', url, dbg);
-      } catch (e) {
+      } catch (e: unknown) {
         console.warn('updateService - failed to enumerate FormData for debug', e);
       }
       // Use POST with _method=PATCH when sending multipart FormData to ensure backend receives fields.
@@ -94,18 +94,18 @@ export const updateService = async (
         if (!(serviceData as FormData).has('_method')) {
           (serviceData as FormData).append('_method', 'PATCH');
         }
-      } catch (e) {
+      } catch (e: unknown) {
         // ignore
       }
       const response = await api.post(url, serviceData);
       console.log("Service updated successfully (FormData):", response.data);
-      return response.data;
+      return response.data as Service;
     }
 
     const { id, ...updateData } = serviceData as UpdateServiceData;
     const response = await api.patch(`/services/${id}`, updateData);
     console.log("Service updated successfully:", response.data);
-    return response.data;
+    return response.data as Service;
   } catch (error) {
     console.error("Error updating service:", error);
     throw error;
@@ -128,7 +128,7 @@ export const getServices = async (): Promise<Service[]> => {
   try {
     const response = await api.get("/all-services");
     console.log("Services fetched successfully:", response.data);
-    return response.data;
+    return response.data as Service[];
   } catch (error) {
     console.error("Error fetching services:", error);
     throw error;

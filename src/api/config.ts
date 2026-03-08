@@ -45,13 +45,13 @@ api.interceptors.response.use(
     }
 );
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
     success: boolean;
     data?: T;
     error?: string;
     message?: string;
-    id?: unknown;
-    name?: unknown;
+    id?: number | string;
+    name?: string;
 }
 
 export async function bootstrapCsrf() {

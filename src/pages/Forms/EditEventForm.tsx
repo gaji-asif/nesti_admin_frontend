@@ -150,9 +150,16 @@ export default function EditEventForm({ event, onClose, onSaved }: Props) {
     try {
     // Send the raw formData. The API function will map 'name' to backend field, etc.
     await editEvent(event.id, {
-      title: formData.name, // Map name back to title for API compatibility
-      ...formData,
-      is_active: formData.is_active ? "1" : "0"
+      title: formData.name,
+      short_description: formData.short_description,
+      description: formData.description,
+      date: formData.date,
+      start_time: formData.start_time,
+      end_time: formData.end_time,
+      place: formData.place,
+      city: formData.city,
+      audience: formData.audience,
+      // is_active is excluded as it's not in EditEventPayload
     });
 
     alert("Event updated successfully");
