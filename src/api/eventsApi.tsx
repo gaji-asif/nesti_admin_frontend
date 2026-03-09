@@ -1,5 +1,6 @@
 import { api } from './config'
 import { normalizeListResponse, normalizeEventItem } from '../utils/apiNormalize'
+import { string } from 'zod';
 
 export interface EventItem {
   id: string;
@@ -23,15 +24,8 @@ export interface EventItem {
   price: string;
 }
 
-export interface CreateEventPayload {
-  title: string;
-  description: string;
-  date: string;
-  time: string;
-  city: string;
-  place: string;
-  audience: string;
-}
+export type CreateEventPayload = Pick<EventItem, 'title' | 'description' | 'short_description' | 'date' | 'time' | 'city' | 'place'> & {  audience: string;
+};
 
 // Function to get events list
 export const getEvents = async (): Promise<EventItem[]> => {
@@ -76,64 +70,36 @@ export const deleteEvent = async (id: string): Promise<void> => {
   }
 };
 
-export interface EditEventPayload {
-  title?: string;
-  short_description?: string;
-  description?: string;
-  date?: string;
+export type EditEventPayload = Partial<CreateEventPayload> & {
   start_time?: string;
   end_time?: string;
-  place?: string;
-  city?: string;
-  audience?: string;
-}
+};
 
 export const editEvent = async (id: string, formPayload: EditEventPayload): Promise<void> => {
-  try {
-    // Map frontend form fields to backend API fields
-    const body = {
-      title: formPayload.title,
-      description: formPayload.short_description || formPayload.description || "",
-      date: formPayload.date,
-      time: formPayload.end_time ? `${formPayload.start_time} - ${formPayload.end_time}` : formPayload.start_time,
-      place: formPayload.place,
-      city: formPayload.city,
-      audience: formPayload.audience || ""
-    };
+  const body = {
+    title: formPayload.title,
+    description: formPayload.description,
+    short_description: formPayload.short_description,
+    date: formPayload.date,
+    time: formPayload.start_time && formPayload.end_time ? `${formPayload.start_time}–${formPayload.end_time}` : formPayload.start_time,
+    city: formPayload.city,
+    place: formPayload.place,
+    audience: formPayload.audience,
+  };
 
-    console.debug('editEvent - sending body:', body);
-    await api.put(`/events/${id}`, body);
-    console.log("Event updated successfully (PUT /events/:id)");
-  } catch (error: unknown) {
-    // Keep your existing POST fallback logic here...
-    const resp = (error as Record<string, unknown> | null)?.response;
-    let status: number | undefined;
-    if (resp && typeof resp === 'object' && 'status' in resp) {
-      const rrec = resp as Record<string, unknown>;
-      const s = rrec.status;
-      status = typeof s === 'number' ? s : undefined;
-    } else {
-      status = undefined;
-    }
-    if (status === 405 || status === 404) {
-      // Reconstruct body with the same format for fallback
-      const body = {
-        title: formPayload.title,
-        description: formPayload.short_description || formPayload.description || "",
-        date: formPayload.date,
-        time: formPayload.end_time ? `${formPayload.start_time} - ${formPayload.end_time}` : formPayload.start_time,
-        place: formPayload.place,
-        city: formPayload.city,
-        audience: formPayload.audience || ""
-      };
+  try {
+    await api.patch(`/events/${id}`, body);
+    console.log("Event edited successfully (PATCH /events/:id)");
+  } catch (error: any) {
+    const status = error.response?.status;
+    if (status === 404 || status === 405) {
       await api.post(`/events/${id}`, { ...body, _method: 'PUT' });
-      console.log("Event updated successfully via POST fallback (POST /events/:id with _method=PUT)");
-    } else {
-      console.error("Error updating event:", error);
+  }  else {
+      console.error("Error editing event:", error);
       throw error;
     }
   }
-};
+}
 
 export const getEventById = async (id: string): Promise<EventItem | null> => {
   try {
