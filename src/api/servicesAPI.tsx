@@ -22,20 +22,10 @@ export interface Service {
 }
 
 // Interface for creating a new service
-export interface CreateServiceData {
-  name: string;
-  category_ids: number[];
-  location?: string;
-  city: string;
-  rating?: number | null;
-  address: string;
-  website?: string;
-  description?: string;
-  short_description: string;
-  is_partner?: string;
-  discount?: string;
-  discount_text?: string;
-}
+export type CreateServiceData = Omit<
+  Service,
+  'id' | 'created_by' | 'updated_at' | 'created_at' | 'image' | 'image_url'
+>;
 
 // Function to add new service
 export const addService = async (
@@ -53,59 +43,31 @@ export const addService = async (
 };
 
 // Interface for updating a service
-export interface UpdateServiceData {
-  id: number;
-  name?: string;
-  category_ids?: number[];
-  location?: string;
-  city?: string;
-  rating?: number | null;
-  address?: string;
-  website?: string;
-  description?: string;
-  short_description?: string;
-  is_partner?: string;
-  discount?: string;
-  discount_text?: string;
-}
+export type UpdateServiceData =
+  Partial<
+    Omit<Service, 'created_by' | 'updated_at' | 'created_at'>
+  > & { id: number };
 
 // Function to update a service
 export const updateService = async (
   serviceData: UpdateServiceData | FormData
 ): Promise<Service> => {
   try {
-    // If FormData is provided, assume multipart upload
     if (serviceData instanceof FormData) {
-      const id = serviceData.get('id') as unknown as string | undefined;
-      // If ID is included as field, use it; otherwise expect PATCH endpoint to accept FormData without id
-      const url = id ? `/services/${id}` : `/services`;
-      // Debug: log FormData entries (show file metadata only)
-      try {
-        const dbg: Record<string, unknown> = {};
-        for (const [k, v] of (serviceData as FormData).entries()) {
-          dbg[k] = v instanceof File ? { name: v.name, size: v.size, type: v.type } : v;
-        }
-        console.log('updateService - sending FormData to', url, dbg);
-      } catch (e: unknown) {
-        console.warn('updateService - failed to enumerate FormData for debug', e);
+      const id = serviceData.get('id');
+      if (!id) throw new Error("Missing service ID in FormData");
+      if (!serviceData.has('_method')) {
+        serviceData.append('_method', 'PATCH');
       }
-      // Use POST with _method=PATCH when sending multipart FormData to ensure backend receives fields.
-      try {
-        if (!(serviceData as FormData).has('_method')) {
-          (serviceData as FormData).append('_method', 'PATCH');
-        }
-      } catch (e: unknown) {
-        // ignore
-      }
-      const response = await api.post(url, serviceData);
-      console.log("Service updated successfully (FormData):", response.data);
-      return response.data as Service;
-    }
-
+      const response = await api.post(`/services/${id}`, serviceData);
+      console.log("Service updated successfully:", response.data);
+      return response.data;
+    } 
+    
     const { id, ...updateData } = serviceData as UpdateServiceData;
     const response = await api.patch(`/services/${id}`, updateData);
     console.log("Service updated successfully:", response.data);
-    return response.data as Service;
+    return response.data;
   } catch (error) {
     console.error("Error updating service:", error);
     throw error;
