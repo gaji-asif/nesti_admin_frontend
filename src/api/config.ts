@@ -1,45 +1,43 @@
 import axios from "axios";
 
-// Use a dev-relative URL so Vite dev server proxy handles CORS in development.
-// In production use the real API host.
-export const API_URL = import.meta.env.DEV ? '/api' : 'https://api.nesticommunity.com/api';
+const resolveApiBaseUrl = (): string => {
+    // In local dev, use Vite proxy to avoid browser CORS restrictions.
+    if (import.meta.env.DEV && !import.meta.env.VITE_API_BASE_URL) {
+        return '/api';
+    }
+    return import.meta.env.VITE_API_BASE_URL || 'https://api.nesticommunity.com/api';
+};
+
 export const api = axios.create({
-    baseURL: API_URL,
+    baseURL: resolveApiBaseUrl(),
     timeout: 10000,
-    // Do not set a global Content-Type so axios can choose per-request headers
-    headers: {},
-    //withCredentials: true, // important for Sanctum if backend requires cookies
+    headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+    }
 });
 
-// Add request interceptor to automatically include bearer token
 api.interceptors.request.use(
     (config) => {
-        // Prefer token stored in localStorage (user login) otherwise fall back to env token
-        const storedToken = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
-        const envToken = import.meta.env.VITE_API_TOKEN;
-        const token = storedToken || envToken;
-
+        const token = localStorage.getItem("auth_token");
         if (token) {
-            config.headers = config.headers || {};
             config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
     },
-    (error) => {
-        return Promise.reject(error);
-    }
+    (error) => Promise.reject(error)
 );
 
-// Add response interceptor to handle token expiration
+
 api.interceptors.response.use(
-    (response) => {
-        return response;
-    },
+    (response) => response,
     (error) => {
-        // Handle 401 Unauthorized responses (token expired/invalid)
         if (error.response?.status === 401) {
-            // Log the error but don't logout since we're using a temp token
-            console.warn('Token expired or invalid. Using temp token - please check token validity.');
+            localStorage.removeItem("auth_token");
+
+            if (typeof window !== "undefined" && window.location.pathname !== '/login') {
+                window.location.href = '/login';
+            }
         }
         return Promise.reject(error);
     }
@@ -50,17 +48,15 @@ export interface ApiResponse<T = unknown> {
     data?: T;
     error?: string;
     message?: string;
-    id?: number | string;
-    name?: string;
 }
 
-export async function bootstrapCsrf() {
+export const bootstrapCsrf = async (): Promise<void> => {
+    const rawBase = resolveApiBaseUrl();
+    const csrfUrl = rawBase.startsWith('/api')
+        ? '/sanctum/csrf-cookie'
+        : `${rawBase.endsWith('/api') ? rawBase.slice(0, -4) : rawBase}/sanctum/csrf-cookie`;
 
-    //   await axios.get('http://localhost/NestiApp/public/sanctum/csrf-cookie', {
-    //     withCredentials: true,
-    //   });
-
-    //   await api.get('/sanctum/csrf-cookie');
-    await api.get('/sanctum/csrf-cookie');
-
-}
+    await axios.get(csrfUrl, {
+        withCredentials: true,
+    });
+};

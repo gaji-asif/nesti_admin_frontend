@@ -1,6 +1,5 @@
 import { api } from './config'
 import { normalizeListResponse, normalizeEventItem } from '../utils/apiNormalize'
-import { string } from 'zod';
 
 export interface EventItem {
   id: string;

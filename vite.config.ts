@@ -22,6 +22,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: true,
       },
+      '/sanctum': {
+        target: 'https://api.nesticommunity.com',
+        changeOrigin: true,
+        secure: true,
+      },
     },
   },
 });
