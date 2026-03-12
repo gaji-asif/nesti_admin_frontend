@@ -20,8 +20,9 @@ export const addCategory = async (
     const response = await api.post("/add-category", categoryData);
 
     console.log("Category added successfully:", response.data);
-    console.log("Next category Id to be assigned:", response.data.id + 1);
-    return response.data;
+    const data = response.data as Category;
+    console.log("Next category Id to be assigned:", (typeof data.id === 'number') ? data.id + 1 : data.id);
+    return data;
   } catch (error) {
     console.error("Error adding category:", error);
     throw error;
@@ -32,7 +33,7 @@ export const addCategory = async (
 export const getAllCategories = async (): Promise<Category[]> => {
   try {
     const response = await api.get("/all-categories");
-    return response.data;
+    return response.data as Category[];
   } catch (error) {
     console.error("Error fetching categories:", error);
     throw error;
@@ -52,8 +53,9 @@ export const updateCategory = async (
   try {
     const { id, ...updateData } = categoryData;
     const response = await api.patch(`/categories/${id}`, updateData);
-    console.log("Category updated successfully:", response.data);
-    return response.data;
+    const data = response.data as Category;
+    console.log("Category updated successfully:", data);
+    return data;
   } catch (error) {
     console.error("Error updating category:", error);
     throw error;
@@ -77,8 +79,9 @@ export const updateCategoryById = async (
 ): Promise<Category> => {
   try {
     const response = await api.patch(`/categories/${id}`, categoryData);
-    console.log("Category updated successfully:", response.data);
-    return response.data;
+    const data = response.data as Category;
+    console.log("Category updated successfully:", data);
+    return data;
   } catch (error) {
     console.error("Error updating category:", error);
     throw error;

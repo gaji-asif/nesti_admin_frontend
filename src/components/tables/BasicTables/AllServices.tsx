@@ -36,9 +36,11 @@ export default function AllServices() {
     try {
       await deleteService(id);
       setServices(services.filter(s => s.id !== id));
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting service:', error);
-      alert(`Failed to delete service: ${error.response?.data?.message || error.message}`);
+      const anyErr = error as any;
+      const message = anyErr?.response?.data?.message || (error instanceof Error ? error.message : String(error));
+      alert(`Failed to delete service: ${message}`);
     }
   };
 

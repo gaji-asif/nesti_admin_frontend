@@ -23,15 +23,8 @@ export interface EventItem {
   price: string;
 }
 
-export interface CreateEventPayload {
-  title: string;
-  description: string;
-  date: string;
-  time: string;
-  city: string;
-  place: string;
-  audience: string;
-}
+export type CreateEventPayload = Pick<EventItem, 'title' | 'description' | 'short_description' | 'date' | 'time' | 'city' | 'place'> & {  audience: string;
+};
 
 // Function to get events list
 export const getEvents = async (): Promise<EventItem[]> => {
@@ -42,8 +35,10 @@ export const getEvents = async (): Promise<EventItem[]> => {
     console.debug('getEvents - raw response:', response?.data);
     
     // Extract list from possible response shapes and map to EventItem
-    const eventsArray = normalizeListResponse<any>(response.data);
-    const normalized: EventItem[] = eventsArray.map((e: any) => normalizeEventItem(e)).filter(Boolean) as EventItem[];
+    const eventsArray = normalizeListResponse<unknown>(response.data);
+    const normalized: EventItem[] = eventsArray
+      .map((e: unknown) => normalizeEventItem(e))
+      .filter(Boolean) as EventItem[];
 
     return normalized;
   } catch (error) {
@@ -74,44 +69,36 @@ export const deleteEvent = async (id: string): Promise<void> => {
   }
 };
 
-export const editEvent = async (id: string, formPayload: any): Promise<void> => {
-  try {
-    // Map frontend form fields to backend API fields
-    const body = {
-      title: formPayload.title,
-      description: formPayload.short_description || formPayload.description || "",
-      date: formPayload.date,
-      time: formPayload.end_time ? `${formPayload.start_time} - ${formPayload.end_time}` : formPayload.start_time,
-      place: formPayload.place,
-      city: formPayload.city,
-      audience: formPayload.audience || ""
-    };
+export type EditEventPayload = Partial<CreateEventPayload> & {
+  start_time?: string;
+  end_time?: string;
+};
 
-    console.debug('editEvent - sending body:', body);
-    await api.put(`/events/${id}`, body);
-    console.log("Event updated successfully (PUT /events/:id)");
+export const editEvent = async (id: string, formPayload: EditEventPayload): Promise<void> => {
+  const body = {
+    title: formPayload.title,
+    description: formPayload.description,
+    short_description: formPayload.short_description,
+    date: formPayload.date,
+    time: formPayload.start_time && formPayload.end_time ? `${formPayload.start_time}–${formPayload.end_time}` : formPayload.start_time,
+    city: formPayload.city,
+    place: formPayload.place,
+    audience: formPayload.audience,
+  };
+
+  try {
+    await api.patch(`/events/${id}`, body);
+    console.log("Event edited successfully (PATCH /events/:id)");
   } catch (error: any) {
-    // Keep your existing POST fallback logic here...
-    const status = error?.response?.status;
-    if (status === 405 || status === 404) {
-      // Reconstruct body with the same format for fallback
-      const body = {
-        title: formPayload.title,
-        description: formPayload.short_description || formPayload.description || "",
-        date: formPayload.date,
-        time: formPayload.end_time ? `${formPayload.start_time} - ${formPayload.end_time}` : formPayload.start_time,
-        place: formPayload.place,
-        city: formPayload.city,
-        audience: formPayload.audience || ""
-      };
+    const status = error.response?.status;
+    if (status === 404 || status === 405) {
       await api.post(`/events/${id}`, { ...body, _method: 'PUT' });
-      console.log("Event updated successfully via POST fallback (POST /events/:id with _method=PUT)");
-    } else {
-      console.error("Error updating event:", error);
+  }  else {
+      console.error("Error editing event:", error);
       throw error;
     }
   }
-};
+}
 
 export const getEventById = async (id: string): Promise<EventItem | null> => {
   try {
@@ -155,14 +142,18 @@ export const getEventById = async (id: string): Promise<EventItem | null> => {
   }
 };
 
-function getFallbackPublisherName(e: any): any {
-  if (!e) return '';
-  if (e.publisher_name) return e.publisher_name;
-  if (e.publisherName) return e.publisherName;
-  if (e.publisher) {
-    if (typeof e.publisher === 'string') return e.publisher;
-    if (e.publisher.name) return e.publisher.name;
-    if (e.publisher.full_name) return e.publisher.full_name;
+function getFallbackPublisherName(e: unknown): string {
+  if (!e || typeof e !== 'object') return '';
+  const obj = e as Record<string, unknown>;
+  if (obj.publisher_name) return String(obj.publisher_name);
+  if (obj.publisherName) return String(obj.publisherName);
+  const pub = obj.publisher;
+  if (!pub) return '';
+  if (typeof pub === 'string') return pub;
+  if (typeof pub === 'object' && pub !== null) {
+    const p = pub as Record<string, unknown>;
+    if (p.name) return String(p.name);
+    if (p.full_name) return String(p.full_name);
   }
   return '';
 }

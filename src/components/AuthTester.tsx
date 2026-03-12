@@ -27,7 +27,8 @@ export default function AuthTester() {
         const parsed = JSON.parse(authData);
         alert(`Token exists: ${parsed.token ? 'Yes' : 'No'}`);
         console.log('Current token:', parsed.token);
-      } catch (error) {
+      } catch (err) {
+        console.warn(err);
         alert('Invalid token format');
       }
     } else {

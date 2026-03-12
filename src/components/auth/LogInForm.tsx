@@ -29,13 +29,15 @@ export default function LogInForm() {
       // Redirect back to intended page if present
       const from = location.state?.from?.pathname || "/";  // Removed 'as any' since it's now typed
       navigate(from, { replace: true });
-    } catch (err: any) {
-      const status = err?.response?.status;
+    } catch (err: unknown) {
+      type AxiosLike = { response?: { status?: number; data?: { message?: string } }; message?: string };
+      const ae = err as AxiosLike;
+      const status = ae.response?.status;
       const message = status === 401
         ? "Invalid email or password"
         : status === 404
         ? "User not found"
-        : err?.response?.data?.message || err?.message || "Something went wrong";
+        : ae.response?.data?.message || ae.message || "Something went wrong";
       setError(message);
     } finally {
       setLoading(false);
