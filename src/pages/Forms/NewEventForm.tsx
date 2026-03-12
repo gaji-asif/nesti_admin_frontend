@@ -95,6 +95,8 @@ export default function NewEvent() {
       const payload = {
         title: formData.title,
         description: formData.description,
+        // short_description is required by CreateEventPayload; use a truncated excerpt
+        short_description: formData.description ? formData.description.slice(0, 150) : "",
         date: formData.date,
         time: time,
         place: formData.place,
