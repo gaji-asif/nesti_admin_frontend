@@ -9,9 +9,11 @@ import {
 import Button from "../../ui/button/Button";
 import { useState, useEffect } from "react";
 import { useUsers } from "../../../hooks/useApiData";
+import { useNavigate } from "react-router";
 
 export default function AllUsers() {
   const { users } = useUsers();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [loadedCount, setLoadedCount] = useState(10);
   const itemsPerPage = 10;
@@ -115,6 +117,12 @@ export default function AllUsers() {
               >
                 Interests
               </TableCell>
+              <TableCell
+                isHeader
+                className="px-5 py-3 font-bold text-gray-900 text-start text-theme-sm dark:text-white"
+              >
+                Action
+              </TableCell>
             </TableRow>
           </TableHeader>
 
@@ -172,10 +180,19 @@ export default function AllUsers() {
                     <span className="text-gray-400">N/A</span>
                   )}
                 </TableCell>
+                <TableCell className="px-4 py-3 text-start">
+                  <Button
+                    size="sm"
+                    onClick={() => navigate(`/users/${user.id}`)}
+                    className="px-3 py-1"
+                  >
+                    View
+                  </Button>
+                </TableCell>
               </TableRow>
             )) : (
               <TableRow>
-                <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
+                <td colSpan={10} className="px-4 py-8 text-center text-gray-500">
                   No users found
                 </td>
               </TableRow>

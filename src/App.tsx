@@ -28,6 +28,8 @@ import Logout from "./pages/AuthPages/Logout";
 import AllUsers from "./pages/Tables/AllUsers";
 import AllEvents from "./pages/Tables/AllEvents";
 import NewEvent from "./pages/Forms/NewEventForm";
+import AllReviews from "./pages/Tables/AllReviews";
+import UserDetail from "./pages/UserDetail.tsx";
 
 export default function App() {
   // Removed unused destructuring of isAuthenticated to fix the "declared but never read" warning.
@@ -56,7 +58,9 @@ export default function App() {
             {/* Tables */}
             <Route path="/all-services" element={<AllServices />} />
             <Route path="/all-categories" element={<AllCategories />} />
+            <Route path="/all-reviews" element={<AllReviews />} />
             <Route path="/all-users" element={<AllUsers />} />
+            <Route path="/users/:id" element={<UserDetail />} />
             <Route path="/service-analytics" element={<ServiceAnalytics />} />
             <Route path="/all-events" element={<AllEvents />} />
             <Route path="/new-event" element={<NewEvent />} />

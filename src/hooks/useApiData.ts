@@ -44,6 +44,39 @@ export const useUsers = () => {
     return { users, ...rest };
 };
 
+export const useUser = (userId?: number | string) => {
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchById = async () => {
+            const id = parseId(userId);
+            if (!id) {
+                setUser(null);
+                setLoading(false);
+                return;
+            }
+
+            try {
+                setLoading(true);
+                setError(null);
+                const data = await getUsers();
+                const list = (data as any)?.data || (data as any)?.users || (Array.isArray(data) ? data : []);
+                setUser(list.find((u: User) => u.id === id) || null);
+            } catch (err) {
+                setError("Failed to fetch user");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchById();
+    }, [userId]);
+
+    return { user, loading, error };
+};
+
 export const useServiceClickSummary = (params?: any) => {
     const fetchFn = useCallback(() => getServiceClickSummary(params?.service_id, params?.filter),
         [params?.service_id, params?.filter]);
