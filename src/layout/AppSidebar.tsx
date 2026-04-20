@@ -30,6 +30,7 @@ const navItems: NavItem[] = [
       { name: "All Services", path: "/all-services", pro: false },
       { name: "Categories", path: "/all-categories", pro: false },
       { name: "Add Category", path: "/new-category", pro: false },
+      { name: "All Reviews", path: "/all-reviews", pro: false },
     ],
   },
   {
