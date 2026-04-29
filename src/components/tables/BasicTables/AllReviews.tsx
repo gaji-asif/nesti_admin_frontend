@@ -8,62 +8,31 @@ import {
 
 import Button from "../../ui/button/Button";
 import { useState, useEffect } from "react";
+import { getAllReviews, Review as ApiReview } from "../../../api/reviewsApi";
 
-export type Review = {
-  id: number;
-  service_id?: number;
+type Review = ApiReview & {
   service_name?: string;
   user_name?: string;
-  rating?: number | null;
-  comment?: string | null;
-  created_at?: string;
   status?: "pending" | "approved" | "declined";
 };
 
 export default function AllReviewsTable() {
-  // Placeholder: reviews will come from an API in the future
-  const [reviews, setReviews] = useState<Review[]>([
-    {
-      id: 101,
-      service_id: 12,
-      service_name: "Sunny Cafe",
-      user_name: "Alice Johnson",
-      rating: 4,
-      comment: "Great brunch spot — friendly staff and good coffee.",
-      created_at: "2026-03-10",
-      status: "pending",
-    },
-    {
-      id: 102,
-      service_id: 7,
-      service_name: "Green Toys Playroom",
-      user_name: "Mark Lee",
-      rating: 5,
-      comment: "Kids loved it. Clean and well-supervised.",
-      created_at: "2026-03-12",
-      status: "approved",
-    },
-    {
-      id: 103,
-      service_id: 3,
-      service_name: "Happy Paws Grooming",
-      user_name: "Sophie Martinez",
-      rating: 3,
-      comment: "Good service but a bit pricey.",
-      created_at: "2026-03-15",
-      status: "declined",
-    },
-    {
-      id: 104,
-      service_id: 5,
-      service_name: "City Yoga Studio",
-      user_name: "Daniel Kim",
-      rating: null,
-      comment: null,
-      created_at: "2026-03-18",
-      status: "pending",
-    },
-  ]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const data = await getAllReviews();
+        if (mounted) setReviews(data);
+      } catch (error) {
+        console.error("Failed to load reviews:", error);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const handleApprove = (id: number) => {
     if (!window.confirm('Approve this review?')) return;
@@ -85,7 +54,7 @@ export default function AllReviewsTable() {
       r.id.toString().includes(s) ||
       (r.service_name || "").toLowerCase().includes(s) ||
       (r.user_name || "").toLowerCase().includes(s) ||
-      (r.comment || "").toLowerCase().includes(s) ||
+      ((r.review as string) || "").toLowerCase().includes(s) ||
       (r.rating !== null && r.rating !== undefined && r.rating.toString().includes(s))
     );
   });
@@ -139,7 +108,7 @@ export default function AllReviewsTable() {
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{r.service_name || `Service ${r.service_id ?? 'N/A'}`}</TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{r.user_name || 'Anonymous'}</TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{r.rating !== null && r.rating !== undefined ? r.rating : 'N/A'}</TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{r.comment || '-'}</TableCell>
+                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{r.review || '-'}</TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{r.created_at || '-'}</TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                     {r.status === 'approved' ? (
@@ -160,7 +129,7 @@ export default function AllReviewsTable() {
               ))
             ) : (
               <TableRow>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-500">No reviews found</td>
+                <td colSpan={8} className="px-4 py-8 text-center text-gray-500">No reviews found</td>
               </TableRow>
             )}
           </TableBody>
