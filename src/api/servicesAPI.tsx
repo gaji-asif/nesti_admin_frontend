@@ -90,7 +90,13 @@ export const getServices = async (): Promise<Service[]> => {
   try {
     const response = await api.get("/all-services");
     console.log("Services fetched successfully:", response.data);
-    return response.data as Service[];
+    const payload = response.data;
+    if (Array.isArray(payload)) return payload as Service[];
+    if (payload && Array.isArray(payload.data)) return payload.data as Service[];
+    if (payload && Array.isArray(payload.services)) return payload.services as Service[];
+    // Fallback: return empty array and log unexpected shape
+    console.warn("getServices: unexpected response shape", payload);
+    return [] as Service[];
   } catch (error) {
     console.error("Error fetching services:", error);
     throw error;
