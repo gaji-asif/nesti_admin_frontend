@@ -9,6 +9,7 @@ export interface Review {
   starts_at: string;
   created_at: string;
   updated_at: string;
+  status?: string;
 }
 
 // Function to get all reviews (admin view)
@@ -28,4 +29,16 @@ export const getAllReviews = async (): Promise<Review[]> => {
     console.error("Error fetching all reviews:", error);
     throw error;
   }
+};
+
+//Approve or reject review
+export const updateReviewStatus = async (id: number, status: "approved" | "rejected"): Promise<Review> => {
+    try {
+        const response = await api.patch(`update-review-status/${id}/status`, { status });
+        console.log(`Review ${id} status updated to ${status}:`, response.data);
+        return response.data as Review;
+    } catch (error) {
+        console.error(`Error updating review ${id} status to ${status}:`, error);
+        throw error;
+    }       
 };
