@@ -24,6 +24,10 @@ export default function AllReviewsTable() {
       }
     };
     fetchData();
+
+    // Poll for new reviews every 5 seconds
+    const interval = setInterval(fetchData, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const serviceMap = useMemo(() => {
@@ -128,7 +132,7 @@ export default function AllReviewsTable() {
                     {serviceMap.get(r.service_id) || `ID: ${r.service_id}`}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    {r.user_id}
+                    {r.user?.name || `User ${r.user_id}`}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 max-w-xs truncate">
                     {r.review || '-'}

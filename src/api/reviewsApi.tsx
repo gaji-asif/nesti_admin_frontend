@@ -1,5 +1,11 @@
 import { api } from "./config";
 
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
 export interface Review {
   id: number;
   service_id: number;
@@ -10,6 +16,7 @@ export interface Review {
   created_at: string;
   updated_at: string;
   status?: string;
+  user?: User;
 }
 
 // Function to get all reviews (admin view)
@@ -32,13 +39,13 @@ export const getAllReviews = async (): Promise<Review[]> => {
 };
 
 //Approve or reject review
-export const updateReviewStatus = async (id: number, status: "approved" | "rejected"): Promise<Review> => {
-    try {
-        const response = await api.patch(`update-review-status/${id}/status`, { status });
-        console.log(`Review ${id} status updated to ${status}:`, response.data);
-        return response.data as Review;
-    } catch (error) {
-        console.error(`Error updating review ${id} status to ${status}:`, error);
-        throw error;
-    }       
+export const updateReviewStatus = async (id: number, status: "approved" | "rejected" | "pending"): Promise<Review> => {
+  try {
+    const response = await api.patch(`update-review-status/${id}/status`, { status });
+    console.log(`Review ${id} status updated to ${status}:`, response.data);
+    return response.data as Review;
+  } catch (error) {
+    console.error(`Error updating review ${id} status to ${status}:`, error);
+    throw error;
+  }
 };
